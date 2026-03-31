@@ -1,0 +1,32 @@
+.react-calendar {
+  border: none;
+  width: 100%;
+  max-width: 500px;
+  background: #f3efe6;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+/* Estado disponible */
+.react-calendar__tile.disponible {
+  background: #e8e8e8 !important;
+  color: #c98c00 !important;
+}
+
+/* Estado reservado */
+.react-calendar__tile.confirmada {
+  background: #d90404 !important;
+  color: white !important;
+}
+
+/* Estado pendiente */
+.react-calendar__tile.pendiente {
+  background: #e0a000 !important;
+  color: white !important;
+}
+
+/* Quitar color de selección por defecto */
+.react-calendar__tile--active {
+  background: transparent !important;
+  color: inherit !important;
+}
