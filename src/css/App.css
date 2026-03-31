@@ -1,3 +1,236 @@
+:root {
+  --color-primary: #c2a878;
+  /* MARRÓN (principal) */
+  --color-primary-dark: #a68c5e;
+
+  --color-secondary: #7a8f4e;
+  /* VERDE (secundario) */
+  --color-secondary-dark: #5f6f3c;
+
+  --color-bg: #f8f7f3;
+  --color-white: #ffffff;
+  --color-text: #2c2c2c;
+  --color-muted: #6b6b6b;
+}
+
+/* RESET */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* TITULOS */
+h1,
+h2 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* HERO */
+.hero {
+  height: 90vh;
+  background: url("/hero.jpg") center/cover no-repeat;
+  position: relative;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(44, 44, 44, 0.45);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  color: white;
+  text-align: center;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hero h1 {
+  font-size: 3.5rem;
+  letter-spacing: 1px;
+}
+
+.hero p {
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+/* BOTONES */
+.btn-primary {
+  background: var(--color-primary);
+  border: none;
+  padding: 12px 28px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+
+/* SEARCH */
+.search {
+  background: var(--color-white);
+  padding: 40px;
+  margin-top: -60px;
+  border-radius: 12px;
+  width: 75%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.search h2 {
+  margin-bottom: 20px;
+}
+
+.search-box {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.search-box input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.search-box button {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* INFO */
+.info {
+  padding: 70px;
+  text-align: center;
+  background: var(--color-bg);
+}
+
+.info h2 {
+  color: var(--color-primary);
+}
+
+.info p {
+  max-width: 600px;
+  margin: auto;
+}
+
+.info ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.info li {
+  margin: 10px 0;
+  color: var(--color-muted);
+}
+
+/* GALLERY */
+.gallery {
+  padding: 70px;
+  text-align: center;
+  background: var(--color-white);
+}
+
+.images {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.images img {
+  width: 260px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  transition: all 0.4s ease;
+}
+
+.images img:hover {
+  transform: scale(1.08);
+}
+
+/* CONTACT */
+.contact {
+  background: var(--color-primary);
+  color: white;
+  padding: 60px;
+  text-align: center;
+}
+
+.contact-buttons a {
+  background: var(--color-secondary);
+  color: white;
+  padding: 12px 25px;
+  margin: 10px;
+  display: inline-block;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.contact-buttons a:hover {
+  background: var(--color-secondary-dark);
+}
+
+/* NAVBAR */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: #eaeaea;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 15px;
+  z-index: 1000;
+}
+
+/* BOTONES */
+.nav-btn {
+  padding: 10px 20px;
+  border: 1px solid black;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav-btn.primary {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+}
+
+.nav-btn.secondary {
+  background: var(--color-secondary);
+  color: white;
+  border: none;
+}
+
+/* EVITAR QUE EL NAVBAR TAPE CONTENIDO */
+.hero {
+  margin-top: 70px;
+}
+
 .react-calendar {
   border: none;
   width: 100%;
