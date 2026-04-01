@@ -4,8 +4,7 @@ import "react-calendar/dist/Calendar.css";
 import "../css/App.css";
 import { useEffect, useState } from "react";
 
-export default function ShowCalendar() {
-  
+export default function ShowCalendar({ showHeading = true }) {
   const [reservas, setReservas] = useState([]);
   const [mesActual, setMesActual] = useState(new Date());
 
@@ -17,6 +16,11 @@ export default function ShowCalendar() {
   };
 
   useEffect(() => {
+    if (!supabase) {
+      console.log("No hay conexión a la base de datos" + supabase);
+      return;
+    }
+    
     const fetchReservas = async () => {
       const primerDia = new Date(
         mesActual.getFullYear(),
@@ -39,7 +43,7 @@ export default function ShowCalendar() {
       if (error) {
         console.error("Error al obtener reservas:", error);
       } else {
-        setReservas(data);
+        setReservas(data ?? []);
       }
     };
 
@@ -63,7 +67,7 @@ export default function ShowCalendar() {
 
   return (
     <div className="calendar-container">
-      <h2>Disponibilidad</h2>
+      {showHeading ? <h2>Disponibilidad</h2> : null}
 
       <Calendar
         onActiveStartDateChange={({ activeStartDate }) =>

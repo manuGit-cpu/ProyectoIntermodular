@@ -1,45 +1,47 @@
+import { useEffect, useState } from "react";
+import PillNav from "./PillNav/PillNav";
 import "../css/App.css";
 
+const NAV_ITEMS = [
+  { label: "Reserva", href: "#reserva", ariaLabel: "Ir a reservas" },
+  { label: "Inicio", href: "#hero", ariaLabel: "Ir al inicio", variant: "accent" },
+  { label: "Galería", href: "#gallery", ariaLabel: "Ir a la galería", variant: "accent" },
+  { label: "Info", href: "#info", ariaLabel: "Ir a información", variant: "accent" },
+  { label: "Cómo llegar", href: "#mapa", ariaLabel: "Ir a contacto y mapa" },
+  { label: "Llamar", href: "tel:+34600000000", ariaLabel: "Llamar por teléfono" },
+  {
+    label: "WhatsApp",
+    href: "https://wa.me/34600000000",
+    ariaLabel: "Abrir WhatsApp",
+  },
+];
+
 function Navbar() {
-  const scrollTo = (id) => {
-    const section = document.getElementById(id);
-    section?.scrollIntoView({ behavior: "smooth" });
-  };
+  const [activeHref, setActiveHref] = useState(
+    typeof window !== "undefined" ? window.location.hash : ""
+  );
+
+  useEffect(() => {
+    const onHashChange = () => setActiveHref(window.location.hash);
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   return (
-    <nav className="navbar">
-      <button className="nav-btn primary" onClick={() => scrollTo("reserva")}>
-        Reserva
-      </button>
-
-      <button className="nav-btn secondary" onClick={() => scrollTo("hero")}>
-        Inicio
-      </button>
-
-      <button className="nav-btn secondary" onClick={() => scrollTo("gallery")}>
-        Galería
-      </button>
-
-      <button className="nav-btn secondary" onClick={() => scrollTo("info")}>
-        Info
-      </button>
-
-      <button className="nav-btn primary" onClick={() => scrollTo("mapa")}>
-        Cómo llegar
-      </button>
-
-      <a className="nav-btn primary" href="tel:+34600000000">
-        Llamar
-      </a>
-
-      <a
-        className="nav-btn primary"
-        href="https://wa.me/34600000000"
-        target="_blank"
-      >
-        Whatsapp
-      </a>
-    </nav>
+    <header className="navbar">
+      <PillNav
+        logo="/vite.svg"
+        logoAlt="Casa Rural La Galana"
+        logoHref="#hero"
+        items={NAV_ITEMS}
+        activeHref={activeHref}
+        baseColor="#eae6dc"
+        pillColor="var(--color-primary)"
+        hoveredPillTextColor="#ffffff"
+        pillTextColor="#2c2c2c"
+        className="pill-nav--site"
+      />
+    </header>
   );
 }
 

@@ -1,7 +1,7 @@
 import Hero from "../components/hero";
-import Info from "../components/info";
+import Info from "../components/Info";
 import Gallery from "../components/gallery";
-import Contact from "../components/Contact";
+import Reserva from "../components/Reserva";
 import Navbar from "../components/NavBar";
 import Footer from "../layouts/Footer";
 
@@ -12,8 +12,10 @@ function Home() {
 
         <Hero />
         <Info />
-        <Gallery />
-        <Contact />
+        <div className="gallery-contact-section">
+          <Gallery />
+          <Reserva />
+        </div>
         <Footer />
     </>
   );
