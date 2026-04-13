@@ -38,15 +38,12 @@ function IconArrowRight({ className }) {
   );
 }
 
-/**
- * Carrusel 3D (basado en patrón tipo ThreeDCarousel + Tailwind → CSS propio).
- */
 export default function ThreeDCarousel({
   items,
   autoRotate = true,
   rotateInterval = 4000,
   cardHeight = 500,
-  linkLabel = "Ver más",
+  linkLabel = "Ver mÃ¡s",
   isMobileSwipe = true,
 }) {
   const [active, setActive] = useState(0);
@@ -70,10 +67,11 @@ export default function ThreeDCarousel({
   useEffect(() => {
     const el = carouselRef.current;
     if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsInView(entry.isIntersecting),
-      { threshold: 0.2 }
-    );
+
+    const observer = new IntersectionObserver(([entry]) => setIsInView(entry.isIntersecting), {
+      threshold: 0.2,
+    });
+
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
@@ -91,29 +89,44 @@ export default function ThreeDCarousel({
 
   const onTouchEnd = () => {
     if (!isMobileSwipe || touchStart == null || touchEnd == null) return;
+
     const distance = touchStart - touchEnd;
+
     if (distance > minSwipeDistance) {
       setActive((prev) => (prev + 1) % items.length);
     } else if (distance < -minSwipeDistance) {
       setActive((prev) => (prev - 1 + items.length) % items.length);
     }
+
     setTouchStart(null);
     setTouchEnd(null);
   };
 
   const slideClass = (index) => {
-    const n = items.length;
-    if (index === active) return "carousel-3d-slide carousel-3d-slide--active";
-    if (index === (active + 1) % n) return "carousel-3d-slide carousel-3d-slide--next";
-    if (index === (active - 1 + n) % n) return "carousel-3d-slide carousel-3d-slide--prev";
-    return "carousel-3d-slide carousel-3d-slide--hidden";
+    const total = items.length;
+    const baseClass =
+      "absolute top-1/2 left-1/2 w-full max-w-[28rem] -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition duration-500 ease-out";
+
+    if (index === active) {
+      return `${baseClass} z-20 scale-100 pointer-events-auto opacity-100`;
+    }
+
+    if (index === (active + 1) % total) {
+      return `${baseClass} z-10 translate-x-[-10%] -translate-y-1/2 scale-95 opacity-60 max-md:translate-x-[-50%] max-md:scale-[0.92] max-md:opacity-35`;
+    }
+
+    if (index === (active - 1 + total) % total) {
+      return `${baseClass} z-10 -translate-x-[90%] -translate-y-1/2 scale-95 opacity-60 max-md:translate-x-[-50%] max-md:scale-[0.92] max-md:opacity-35`;
+    }
+
+    return `${baseClass} z-0 scale-90 opacity-0`;
   };
 
   return (
-    <section className="carousel-3d-root" aria-roledescription="carousel">
-      <div className="carousel-3d-inner">
+    <section className="mt-6 w-full" aria-roledescription="carousel">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-0">
         <div
-          className="carousel-3d-viewport"
+          className="relative h-[520px] overflow-hidden rounded-xl md:h-[550px] lg:h-[440px]"
           style={{ "--carousel-card-height": `${cardHeight}px` }}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
@@ -122,33 +135,34 @@ export default function ThreeDCarousel({
           onTouchEnd={onTouchEnd}
           ref={carouselRef}
         >
-          <div className="carousel-3d-stage">
+          <div className="absolute inset-0 flex items-center justify-center [perspective:1200px]">
             {items.map((item, index) => (
               <div key={item.id} className={slideClass(index)}>
-                <article className="carousel-3d-card">
+                <article className="flex min-h-[var(--carousel-card-height)] flex-col overflow-hidden rounded-xl border border-black/8 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.1)] transition hover:shadow-[0_14px_48px_rgba(0,0,0,0.14)]">
                   <div
-                    className="carousel-3d-card-hero"
-                    style={{
-                      backgroundImage: `url(${item.imageUrl})`,
-                    }}
+                    className="relative flex h-48 items-center justify-center overflow-hidden bg-black bg-cover bg-center bg-no-repeat p-6"
+                    style={{ backgroundImage: `url(${item.imageUrl})` }}
                   >
-                    <div className="carousel-3d-card-hero-overlay" />
-                    <div className="carousel-3d-card-hero-text">
-                      <h3 className="carousel-3d-card-brand">{item.brand.toUpperCase()}</h3>
-                      <div className="carousel-3d-card-rule" />
-                      <p className="carousel-3d-card-title-sm">{item.title}</p>
+                    <div className="absolute inset-0 bg-black/50" />
+                    <div className="relative z-10 text-center text-white">
+                      <h3 className="font-display text-xl font-bold">{item.brand.toUpperCase()}</h3>
+                      <div className="mx-auto my-2 h-[3px] w-12 rounded-full bg-white" />
+                      <p className="text-sm text-white/95">{item.title}</p>
                     </div>
                   </div>
 
-                  <div className="carousel-3d-card-body">
-                    <h3 className="carousel-3d-card-title">{item.title}</h3>
-                    <p className="carousel-3d-card-sub">{item.brand}</p>
-                    <p className="carousel-3d-card-desc">{item.description}</p>
+                  <div className="flex flex-1 flex-col p-6 text-left">
+                    <h3 className="font-display text-xl font-bold text-copy">{item.title}</h3>
+                    <p className="mb-2 text-sm font-semibold text-muted">{item.brand}</p>
+                    <p className="flex-1 text-sm leading-6 text-muted">{item.description}</p>
 
-                    <div className="carousel-3d-card-footer">
-                      <div className="carousel-3d-tags">
+                    <div className="mt-4">
+                      <div className="mb-4 flex flex-wrap gap-2">
                         {item.tags.map((tag, idx) => (
-                          <span key={idx} className="carousel-3d-tag">
+                          <span
+                            key={idx}
+                            className="rounded-full border border-stone-200 bg-surface px-2 py-1 text-xs text-muted [animation:carousel-tag-pulse_3s_ease-in-out_infinite]"
+                          >
                             {tag}
                           </span>
                         ))}
@@ -156,7 +170,7 @@ export default function ThreeDCarousel({
 
                       <a
                         href={item.link}
-                        className="carousel-3d-more"
+                        className="group relative inline-flex items-center gap-1.5 border-b-2 border-transparent pb-0.5 text-sm text-muted transition hover:border-brand hover:text-copy"
                         onClick={() => {
                           if (item.link.startsWith("/")) {
                             window.scrollTo(0, 0);
@@ -164,7 +178,7 @@ export default function ThreeDCarousel({
                         }}
                       >
                         <span>{linkLabel}</span>
-                        <IconArrowRight className="carousel-3d-more-icon" />
+                        <IconArrowRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-1" />
                       </a>
                     </div>
                   </div>
@@ -177,31 +191,38 @@ export default function ThreeDCarousel({
             <>
               <button
                 type="button"
-                className="carousel-3d-nav carousel-3d-nav--prev"
+                className="absolute top-1/2 left-4 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-muted shadow-[0_4px_14px_rgba(0,0,0,0.12)] transition hover:scale-105 hover:bg-white"
                 onClick={() => setActive((prev) => (prev - 1 + items.length) % items.length)}
                 aria-label="Anterior"
               >
-                <IconChevronLeft className="carousel-3d-nav-icon" />
+                <IconChevronLeft className="h-5 w-5" />
               </button>
+
               <button
                 type="button"
-                className="carousel-3d-nav carousel-3d-nav--next"
+                className="absolute top-1/2 right-4 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-muted shadow-[0_4px_14px_rgba(0,0,0,0.12)] transition hover:scale-105 hover:bg-white"
                 onClick={() => setActive((prev) => (prev + 1) % items.length)}
                 aria-label="Siguiente"
               >
-                <IconChevronRight className="carousel-3d-nav-icon" />
+                <IconChevronRight className="h-5 w-5" />
               </button>
             </>
           )}
 
-          <div className="carousel-3d-dots" role="tablist" aria-label="Diapositivas">
+          <div
+            className="absolute right-0 bottom-6 left-0 z-30 flex items-center justify-center gap-3"
+            role="tablist"
+            aria-label="Diapositivas"
+          >
             {items.map((_, idx) => (
               <button
                 key={idx}
                 type="button"
                 role="tab"
                 aria-selected={active === idx}
-                className={`carousel-3d-dot${active === idx ? " carousel-3d-dot--active" : ""}`}
+                className={`h-2 rounded-full transition ${
+                  active === idx ? "w-5 bg-brand" : "w-2 bg-stone-300 hover:bg-stone-400"
+                }`}
                 onClick={() => setActive(idx)}
                 aria-label={`Ir a la imagen ${idx + 1}`}
               />

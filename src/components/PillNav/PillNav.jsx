@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import "./PillNav.css";
 
 const PillNav = ({
   logo,
@@ -53,10 +52,10 @@ const PillNav = ({
         });
 
         const label = pill.querySelector(".pill-label");
-        const white = pill.querySelector(".pill-label-hover");
+        const hoverLabel = pill.querySelector(".pill-label-hover");
 
         if (label) gsap.set(label, { y: 0 });
-        if (white) gsap.set(white, { y: h + 12, opacity: 0 });
+        if (hoverLabel) gsap.set(hoverLabel, { y: h + 12, opacity: 0 });
 
         const index = circleRefs.current.indexOf(circle);
         if (index === -1) return;
@@ -70,9 +69,9 @@ const PillNav = ({
           tl.to(label, { y: -(h + 8), duration: 2, ease, overwrite: "auto" }, 0);
         }
 
-        if (white) {
-          gsap.set(white, { y: Math.ceil(h + 100), opacity: 0 });
-          tl.to(white, { y: 0, opacity: 1, duration: 2, ease, overwrite: "auto" }, 0);
+        if (hoverLabel) {
+          gsap.set(hoverLabel, { y: Math.ceil(h + 100), opacity: 0 });
+          tl.to(hoverLabel, { y: 0, opacity: 1, duration: 2, ease, overwrite: "auto" }, 0);
         }
 
         tlRefs.current[index] = tl;
@@ -119,22 +118,22 @@ const PillNav = ({
     return () => window.removeEventListener("resize", onResize);
   }, [items, ease, initialLoadAnimation]);
 
-  const handleEnter = (i) => {
-    const tl = tlRefs.current[i];
+  const handleEnter = (index) => {
+    const tl = tlRefs.current[index];
     if (!tl) return;
-    activeTweenRefs.current[i]?.kill();
-    activeTweenRefs.current[i] = tl.tweenTo(tl.duration(), {
+    activeTweenRefs.current[index]?.kill();
+    activeTweenRefs.current[index] = tl.tweenTo(tl.duration(), {
       duration: 0.3,
       ease,
       overwrite: "auto",
     });
   };
 
-  const handleLeave = (i) => {
-    const tl = tlRefs.current[i];
+  const handleLeave = (index) => {
+    const tl = tlRefs.current[index];
     if (!tl) return;
-    activeTweenRefs.current[i]?.kill();
-    activeTweenRefs.current[i] = tl.tweenTo(0, {
+    activeTweenRefs.current[index]?.kill();
+    activeTweenRefs.current[index] = tl.tweenTo(0, {
       duration: 0.2,
       ease,
       overwrite: "auto",
@@ -155,15 +154,15 @@ const PillNav = ({
   };
 
   const toggleMobileMenu = () => {
-    const newState = !isMobileMenuOpen;
-    setIsMobileMenuOpen(newState);
+    const nextState = !isMobileMenuOpen;
+    setIsMobileMenuOpen(nextState);
 
     const hamburger = hamburgerRef.current;
     const menu = mobileMenuRef.current;
 
     if (hamburger) {
       const lines = hamburger.querySelectorAll(".hamburger-line");
-      if (newState) {
+      if (nextState) {
         gsap.to(lines[0], { rotation: 45, y: 3, duration: 0.3, ease });
         gsap.to(lines[1], { rotation: -45, y: -3, duration: 0.3, ease });
       } else {
@@ -173,7 +172,7 @@ const PillNav = ({
     }
 
     if (menu) {
-      if (newState) {
+      if (nextState) {
         gsap.set(menu, { visibility: "visible" });
         gsap.fromTo(
           menu,
@@ -215,10 +214,14 @@ const PillNav = ({
   const homeHref = logoHref ?? items?.[0]?.href ?? "#";
 
   return (
-    <div className="pill-nav-container">
-      <nav className={`pill-nav ${className}`} aria-label="Primary" style={cssVars}>
+    <div className="pointer-events-auto relative w-full md:w-auto">
+      <nav
+        className={`flex w-full items-center justify-between gap-3 md:w-max md:justify-start ${className}`}
+        aria-label="Primary"
+        style={cssVars}
+      >
         <a
-          className="pill-logo"
+          className="inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--base)] p-2"
           href={homeHref}
           aria-label="Inicio"
           onMouseEnter={handleLogoEnter}
@@ -226,31 +229,56 @@ const PillNav = ({
             logoRef.current = el;
           }}
         >
-          <img src={logo} alt={logoAlt} ref={logoImgRef} />
+          <img
+            src={logo}
+            alt={logoAlt}
+            ref={logoImgRef}
+            className="block h-full w-full object-cover"
+          />
         </a>
 
-        <div className="pill-nav-items desktop-only" ref={navItemsRef}>
-          <ul className="pill-list" role="menubar">
-            {items.map((item, i) => (
-              <li key={`pill-${i}-${item.label}`} role="none">
+        <div
+          className="relative hidden h-[50px] items-center rounded-full bg-[var(--base)] md:flex"
+          ref={navItemsRef}
+        >
+          <ul className="m-0 flex h-full list-none items-stretch gap-[10px] p-2" role="menubar">
+            {items.map((item, index) => (
+              <li key={`pill-${index}-${item.label}`} role="none" className="flex h-full">
                 <a
                   role="menuitem"
                   href={item.href}
-                  className={`pill${item.variant ? ` pill--${item.variant}` : ""}${activeHref === item.href ? " is-active" : ""}`}
+                  className={`group relative inline-flex h-full items-center justify-center overflow-hidden rounded-full px-5 text-[13px] font-semibold uppercase leading-none tracking-[0.2px] whitespace-nowrap no-underline ${
+                    item.variant
+                      ? "bg-accent text-[#f4f6ef]"
+                      : "bg-[var(--pill-bg)] text-[var(--pill-text)]"
+                  } ${
+                    activeHref === item.href
+                      ? "is-active after:absolute after:-bottom-1.5 after:left-1/2 after:z-[4] after:h-3 after:w-3 after:-translate-x-1/2 after:rounded-full after:bg-brand"
+                      : ""
+                  }`}
                   aria-label={item.ariaLabel || item.label}
-                  onMouseEnter={() => handleEnter(i)}
-                  onMouseLeave={() => handleLeave(i)}
+                  onMouseEnter={() => handleEnter(index)}
+                  onMouseLeave={() => handleLeave(index)}
                 >
                   <span
-                    className="hover-circle"
+                    className={`hover-circle absolute left-1/2 bottom-0 z-[1] block rounded-full ${
+                      item.variant ? "bg-brand" : "bg-[var(--base)]"
+                    }`}
                     aria-hidden="true"
                     ref={(el) => {
-                      circleRefs.current[i] = el;
+                      circleRefs.current[index] = el;
                     }}
                   />
-                  <span className="label-stack">
-                    <span className="pill-label">{item.label}</span>
-                    <span className="pill-label-hover" aria-hidden="true">
+                  <span className="relative z-[2] inline-block leading-none">
+                    <span className="pill-label relative z-[2] inline-block leading-none">
+                      {item.label}
+                    </span>
+                    <span
+                      className={`pill-label-hover absolute top-0 left-0 z-[3] inline-block ${
+                        item.variant ? "text-white" : "text-copy"
+                      }`}
+                      aria-hidden="true"
+                    >
                       {item.label}
                     </span>
                   </span>
@@ -261,25 +289,33 @@ const PillNav = ({
         </div>
 
         <button
-          className="mobile-menu-button mobile-only"
+          className="relative flex h-[50px] w-[50px] flex-col items-center justify-center gap-1 rounded-full border-0 bg-[var(--base)] p-0 md:hidden"
           type="button"
           onClick={toggleMobileMenu}
-          aria-label="Abrir o cerrar menú"
+          aria-label="Abrir o cerrar menu"
           aria-expanded={isMobileMenuOpen}
           ref={hamburgerRef}
         >
-          <span className="hamburger-line" />
-          <span className="hamburger-line" />
+          <span className="hamburger-line h-0.5 w-4 rounded-[1px] bg-[var(--pill-bg)]" />
+          <span className="hamburger-line h-0.5 w-4 rounded-[1px] bg-[var(--pill-bg)]" />
         </button>
       </nav>
 
-      <div className="mobile-menu-popover mobile-only" ref={mobileMenuRef} style={cssVars}>
-        <ul className="mobile-menu-list">
-          {items.map((item, i) => (
-            <li key={`pill-mobile-${i}-${item.label}`}>
+      <div
+        className="invisible absolute top-14 right-4 left-4 z-[998] rounded-[27px] bg-[var(--base)] opacity-0 shadow-[0_8px_32px_rgba(0,0,0,0.12)] md:hidden"
+        ref={mobileMenuRef}
+        style={cssVars}
+      >
+        <ul className="m-0 flex list-none flex-col gap-[3px] p-[3px]">
+          {items.map((item, index) => (
+            <li key={`pill-mobile-${index}-${item.label}`}>
               <a
                 href={item.href}
-                className={`mobile-menu-link${item.variant ? ` mobile-menu-link--${item.variant}` : ""}${activeHref === item.href ? " is-active" : ""}`}
+                className={`block rounded-[50px] px-4 py-3 text-base font-medium no-underline transition ${
+                  item.variant
+                    ? "bg-accent text-[#f4f6ef] hover:bg-accent-dark hover:text-white"
+                    : "bg-[var(--pill-bg)] text-[var(--pill-text)] hover:bg-[var(--base)] hover:text-[var(--hover-text)]"
+                } ${activeHref === item.href ? "ring-2 ring-brand/30" : ""}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.label}

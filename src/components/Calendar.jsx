@@ -1,12 +1,21 @@
-import Calendar from "react-calendar";
-import { supabase } from "../supabase/client.js";
-import "react-calendar/dist/Calendar.css";
-import "../css/App.css";
 import { useEffect, useState } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import { supabase } from "../supabase/client.js";
 
-export default function ShowCalendar({ showHeading = true }) {
+export default function ShowCalendar({
+  showHeading = true,
+  onDateChange = null,
+  selectedRange = [null, null],
+  children = null,
+}) {
   const [reservas, setReservas] = useState([]);
   const [mesActual, setMesActual] = useState(new Date());
+
+  const monthLabel = mesActual.toLocaleDateString("es-ES", {
+    month: "long",
+    year: "numeric",
+  });
 
   const formatearFecha = (date) => {
     const year = date.getFullYear();
@@ -17,22 +26,13 @@ export default function ShowCalendar({ showHeading = true }) {
 
   useEffect(() => {
     if (!supabase) {
-      console.log("No hay conexión a la base de datos" + supabase);
+      console.log("No hay conexiÃ³n a la base de datos" + supabase);
       return;
     }
-    
-    const fetchReservas = async () => {
-      const primerDia = new Date(
-        mesActual.getFullYear(),
-        mesActual.getMonth(),
-        1
-      );
 
-      const ultimoDia = new Date(
-        mesActual.getFullYear(),
-        mesActual.getMonth() + 1,
-        0
-      );
+    const fetchReservas = async () => {
+      const primerDia = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1);
+      const ultimoDia = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0);
 
       const { data, error } = await supabase
         .from("reservas")
@@ -50,31 +50,136 @@ export default function ShowCalendar({ showHeading = true }) {
     fetchReservas();
   }, [mesActual]);
 
-
   const getEstado = (date) => {
     const fechaActual = formatearFecha(date);
 
-    const reserva = reservas.find(
-      (r) =>
-        fechaActual >= r.fecha_inicio &&
-        fechaActual <= r.fecha_fin
-    );
-    
+    const reserva = reservas.find((r) => fechaActual >= r.fecha_inicio && fechaActual <= r.fecha_fin);
 
     if (!reserva) return "disponible";
     return reserva.estado.toLowerCase();
   };
 
-  return (
-    <div className="calendar-container">
-      {showHeading ? <h2>Disponibilidad</h2> : null}
+  const isDateInRange = (date) => {
+    if (!selectedRange[0] || !selectedRange[1]) return false;
 
-      <Calendar
-        onActiveStartDateChange={({ activeStartDate }) =>
-          setMesActual(activeStartDate)
-        }
-        tileClassName={({ date }) => getEstado(date)}
-      />
+    const start = selectedRange[0];
+    const end = selectedRange[1];
+    const current = new Date(date);
+
+    current.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    return current >= start && current <= end;
+  };
+
+  const handleCalendarChange = (value) => {
+    if (onDateChange) {
+      onDateChange(value);
+    }
+  };
+
+  const reservationImage =
+    "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0996.jpg";
+
+  return (
+    <div
+      className={`calendar-shell flex w-full flex-col ${
+        showHeading ? "max-w-3xl" : "calendar-shell--reservation max-w-[1320px]"
+      }`}
+    >
+      {showHeading ? (
+        <div className="mb-5 space-y-3 text-center sm:mb-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.32em] text-accent">
+            Calendario de estancias
+          </p>
+          <h2 className="font-display text-3xl text-brand sm:text-4xl">Disponibilidad</h2>
+          <p className="mx-auto max-w-2xl text-sm text-muted sm:text-base">
+            Consulta de un vistazo los dÃ­as disponibles y selecciona tu estancia ideal.
+          </p>
+        </div>
+      ) : null}
+
+      <div className="calendar-shell__frame w-full overflow-hidden rounded-[2rem] border border-white/18 bg-linear-to-br from-white/14 via-[#e6d2aa]/18 to-[#b89458]/20 p-4 shadow-[0_18px_50px_rgba(79,66,36,0.14)] backdrop-blur-[10px] sm:p-5 lg:p-6 min-h-screen">
+        <div className="mb-4 flex flex-col gap-3 rounded-[1.6rem] border border-white/14 bg-white/10 px-4 py-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-dark">
+              Vista actual
+            </p>
+            <p className="mt-1 font-display text-2xl text-copy capitalize">{monthLabel}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2 text-xs font-semibold sm:justify-end">
+            <span className="calendar-legend calendar-legend--available">Disponible</span>
+            <span className="calendar-legend calendar-legend--pending">Pendiente</span>
+            <span className="calendar-legend calendar-legend--confirmed">Reservado</span>
+          </div>
+        </div>
+
+        <div
+          className={
+            children
+              ? "grid gap-6 lg:items-start lg:grid-cols-[minmax(560px,1.38fr)_minmax(360px,0.82fr)] xl:grid-cols-[minmax(640px,1.5fr)_minmax(380px,0.8fr)]"
+              : ""
+          }
+        >
+          <div className={children ? "flex flex-col gap-4" : ""}>
+            <Calendar
+              className={showHeading ? "calendar-shell__calendar" : "calendar-shell__calendar calendar-shell__calendar--reservation"}
+              locale="es-ES"
+              formatShortWeekday={(_, date) =>
+                date
+                  .toLocaleDateString("es-ES", { weekday: "short" })
+                  .replace(".", "")
+                  .slice(0, 2)
+              }
+              formatMonthYear={(_, date) =>
+                date.toLocaleDateString("es-ES", {
+                  month: "long",
+                  year: "numeric",
+                })
+              }
+              next2Label={null}
+              prev2Label={null}
+              onActiveStartDateChange={({ activeStartDate }) => setMesActual(activeStartDate)}
+              onChange={handleCalendarChange}
+              value={selectedRange}
+              selectRange={true}
+              tileClassName={({ date }) => {
+                let classes = getEstado(date);
+                if (isDateInRange(date)) {
+                  classes += " in-range";
+                }
+                return classes;
+              }}
+            />
+
+            {!showHeading ? (
+              <div className="relative h-[200px] overflow-hidden rounded-[1.9rem] border border-white/16 shadow-[0_18px_45px_rgba(79,66,36,0.16)] sm:h-[250px] lg:h-[200px]">
+                <img
+                  src={reservationImage}
+                  alt="Interior acogedor de la casa rural"
+                  className="h-full w-full object-cover"
+                />
+                <div
+                  className="absolute inset-0 bg-linear-to-t from-[#24180b]/70 via-[#24180b]/20 to-transparent"
+                  aria-hidden="true"
+                />
+                <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/75">
+                    Estancia
+                  </p>
+                  <p className="mt-2 font-display text-2xl leading-tight">
+                    Un espacio cálido para desconectar
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {children ? <div className="self-start lg:pt-2">{children}</div> : null}
+        </div>
+      </div>
     </div>
   );
 }

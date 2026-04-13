@@ -1,4 +1,3 @@
-import "../css/App.css";
 import ThreeDCarousel from "./ThreeDCarousel";
 
 const GALLERY_ITEMS = [
@@ -15,7 +14,7 @@ const GALLERY_ITEMS = [
     id: 2,
     title: "Interiores acogedores",
     brand: "Casa Rural La Galana",
-    description: "Salón y estancias pensadas para grupos y familias.",
+    description: "SalÃ³n y estancias pensadas para grupos y familias.",
     tags: ["Interior", "Confort"],
     imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0996.jpg",
     link: "#reserva",
@@ -34,7 +33,7 @@ const GALLERY_ITEMS = [
     title: "Detalle del entorno",
     brand: "Casa Rural La Galana",
     description: "Imagen de prueba reutilizada para el carrusel 3D.",
-    tags: ["Prueba", "Galería"],
+    tags: ["Prueba", "Galeria"],
     imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0979.jpg",
     link: "#gallery",
   },
@@ -42,8 +41,11 @@ const GALLERY_ITEMS = [
 
 function Gallery() {
   return (
-    <section className="gallery" id="gallery">
-      <h2>Galería</h2>
+    <section
+      className="scroll-mt-24 bg-white px-6 py-16 text-center sm:px-10 lg:px-0 lg:py-14"
+      id="gallery"
+    >
+      <h2 className="font-display text-4xl text-copy">Galer­ia</h2>
 
       <ThreeDCarousel
         items={GALLERY_ITEMS}

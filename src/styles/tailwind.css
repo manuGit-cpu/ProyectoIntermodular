@@ -1,0 +1,215 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #c2a878;
+  --color-brand-dark: #a68c5e;
+  --color-accent: #7a8f4e;
+  --color-accent-dark: #5f6f3c;
+  --color-surface: #f8f7f3;
+  --color-copy: #2c2c2c;
+  --color-muted: #6b6b6b;
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Playfair Display", serif;
+}
+
+@keyframes carousel-tag-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply m-0 bg-surface font-sans text-copy;
+  }
+}
+
+@layer components {
+  .calendar-legend {
+    @apply inline-flex items-center gap-2 rounded-full border px-3 py-1.5;
+  }
+
+  .calendar-legend::before {
+    content: "";
+    @apply h-2.5 w-2.5 rounded-full;
+  }
+
+  .calendar-legend--available {
+    @apply border-accent/15 bg-accent/10 text-accent-dark;
+  }
+
+  .calendar-legend--available::before {
+    @apply bg-accent;
+  }
+
+  .calendar-legend--pending {
+    @apply border-brand/20 bg-brand/12 text-brand-dark;
+  }
+
+  .calendar-legend--pending::before {
+    @apply bg-brand;
+  }
+
+  .calendar-legend--confirmed {
+    @apply border-copy/10 bg-copy/10 text-copy;
+  }
+
+  .calendar-legend--confirmed::before {
+    @apply bg-copy;
+  }
+
+  .calendar-shell .react-calendar {
+    @apply w-full max-w-none rounded-[1.7rem] border border-white/14 bg-white/10 p-3 text-white shadow-none backdrop-blur-md sm:p-4 lg:p-5;
+  }
+
+  .calendar-shell__calendar {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .calendar-shell .react-calendar__navigation {
+    @apply mb-4 grid grid-cols-[auto_1fr_auto] items-center gap-2 sm:mb-5;
+  }
+
+  .calendar-shell .react-calendar__navigation button {
+    @apply min-h-[46px] rounded-2xl border border-white/14 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:border-white/24 hover:bg-white/16;
+  }
+
+  .calendar-shell .react-calendar__navigation__label {
+    @apply min-w-0 rounded-2xl bg-white/8 px-4 py-2 text-center text-sm font-semibold capitalize text-white sm:text-base;
+  }
+
+  .calendar-shell .react-calendar__month-view__weekdays__weekday {
+    @apply px-0 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-white/70 no-underline sm:text-[0.78rem];
+  }
+
+  .calendar-shell .react-calendar__month-view__weekdays__weekday abbr {
+    @apply no-underline;
+  }
+
+  .calendar-shell .react-calendar__month-view__days {
+    @apply gap-y-1.5;
+  }                                                                           
+
+  .calendar-shell .react-calendar__tile {
+    @apply relative min-h-[56px] rounded-2xl border border-transparent bg-transparent px-1 py-3 text-sm font-semibold text-white transition sm:min-h-[68px] sm:py-4;
+  }
+
+  .calendar-shell .react-calendar__tile:enabled:hover,
+  .calendar-shell .react-calendar__tile:enabled:focus {
+    @apply border-white/24 bg-white/16 text-white;
+  }
+
+  .calendar-shell .react-calendar__tile:disabled {
+    @apply opacity-45;
+  }
+
+  .calendar-shell .react-calendar__tile.disponible {
+    @apply border-accent/20 bg-accent/18 text-white;
+  }
+
+  .calendar-shell .react-calendar__tile.confirmada {
+    @apply border-copy/15 bg-copy/75 text-white;
+  }
+
+  .calendar-shell .react-calendar__tile.pendiente {
+    @apply border-brand/24 bg-brand/28 text-white;
+  }
+
+  .calendar-shell .react-calendar__tile--active {
+    @apply bg-transparent text-inherit;
+  }
+
+  .calendar-shell .react-calendar__tile--now {
+    @apply border border-white/26 bg-white/12 text-white;
+  }
+
+  .calendar-shell .react-calendar__tile--range-start,
+  .calendar-shell .react-calendar__tile--range-end {
+    @apply border-brand bg-brand text-white shadow-[0_10px_24px_rgba(166,140,94,0.25)];
+  }
+
+  .calendar-shell .react-calendar__tile--range,
+  .calendar-shell .react-calendar__tile.in-range {
+    @apply border-white/10 bg-white/12 text-white;
+  }
+
+  .calendar-shell--reservation .react-calendar {
+    @apply w-full rounded-[1.9rem] border-brand/12 bg-[#f7f1e5] p-3 text-copy sm:p-4 lg:min-h-[390px] lg:p-3;
+  }
+
+  .calendar-shell--reservation .calendar-shell__calendar--reservation {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+  }
+
+  .calendar-shell--reservation .react-calendar__navigation {
+    @apply lg:mb-0.5;
+  }
+
+  .calendar-shell--reservation .react-calendar__navigation button {
+    @apply border-brand/10 bg-white/82 text-copy hover:border-brand/25 hover:bg-white lg:min-h-[38px] lg:px-2 lg:text-[0.88rem];
+  }
+
+  .calendar-shell--reservation .react-calendar__navigation__label {
+    @apply bg-white/55 px-3 text-copy lg:py-1.5 lg:text-[0.95rem];
+  }
+
+  .calendar-shell--reservation .react-calendar__month-view__weekdays__weekday {
+    @apply text-muted lg:py-1 lg:text-[0.68rem];
+  }
+
+  .calendar-shell--reservation .react-calendar__month-view__days {
+    @apply lg:gap-y-0;
+  }
+
+  .calendar-shell--reservation .react-calendar__tile {
+    @apply text-copy lg:min-h-[44px] lg:px-1 lg:py-1.5 lg:text-[0.85rem];
+  }
+
+  .calendar-shell--reservation .react-calendar__tile:enabled:hover,
+  .calendar-shell--reservation .react-calendar__tile:enabled:focus {
+    @apply border-brand/20 bg-white text-brand-dark;
+  }
+
+  .calendar-shell--reservation .react-calendar__tile--now {
+    @apply border-brand/25 bg-white text-brand-dark;
+  }
+
+  .calendar-shell--reservation .react-calendar__tile.disponible {
+    @apply border-accent/12 bg-accent/12 text-accent-dark;
+  }
+
+  .calendar-shell--reservation .react-calendar__tile.confirmada {
+    @apply border-copy/10 bg-copy text-white;
+  }
+
+  .calendar-shell--reservation .react-calendar__tile.pendiente {
+    @apply border-brand/18 bg-brand/22 text-brand-dark;
+  }
+
+  .calendar-shell--reservation .react-calendar__tile--range,
+  .calendar-shell--reservation .react-calendar__tile.in-range {
+    @apply border-brand/10 bg-brand/18 text-copy;
+  }
+
+  .calendar-shell--reservation .react-calendar__tile--range-start,
+  .calendar-shell--reservation .react-calendar__tile--range-end {
+    @apply border-brand bg-brand text-white;
+  }
+
+  .calendar-shell--reservation .react-calendar__month-view__days__day {
+    @apply lg:text-[0.85rem];
+  }
+}
