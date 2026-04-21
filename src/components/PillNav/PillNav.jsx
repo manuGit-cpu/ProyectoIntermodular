@@ -7,6 +7,11 @@ const PillNav = ({
   logoHref,
   items,
   activeHref,
+  userHref = "/login",
+  userActive = false,
+  user = null,
+  userRole = "cliente",
+  onLogout,
   className = "",
   ease = "power3.easeOut",
   baseColor = "#fff",
@@ -18,6 +23,7 @@ const PillNav = ({
 }) => {
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const circleRefs = useRef([]);
   const tlRefs = useRef([]);
   const activeTweenRefs = useRef([]);
@@ -27,6 +33,7 @@ const PillNav = ({
   const mobileMenuRef = useRef(null);
   const navItemsRef = useRef(null);
   const logoRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     const layout = () => {
@@ -117,6 +124,18 @@ const PillNav = ({
 
     return () => window.removeEventListener("resize", onResize);
   }, [items, ease, initialLoadAnimation]);
+
+  useEffect(() => {
+    const handleDocumentClick = (event) => {
+      if (!userMenuRef.current?.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleDocumentClick);
+
+    return () => document.removeEventListener("mousedown", handleDocumentClick);
+  }, []);
 
   const handleEnter = (index) => {
     const tl = tlRefs.current[index];
@@ -212,6 +231,17 @@ const PillNav = ({
   };
 
   const homeHref = logoHref ?? items?.[0]?.href ?? "#";
+  const isLoggedIn = Boolean(user);
+  const userLabel = user?.user_metadata?.nombre || user?.email || "Usuario";
+  const userInitial = userLabel.trim().charAt(0).toUpperCase() || "U";
+  const roleLabel =
+    userRole === "admin" || userRole === "administrador"
+      ? "Administrador"
+      : userRole === "empleado"
+        ? "Empleado"
+        : "Cliente";
+  const primaryUserHref =
+    userRole === "admin" || userRole === "administrador" ? "/dashboard" : "/#reserva";
 
   return (
     <div className="pointer-events-auto relative w-full md:w-auto">
@@ -288,6 +318,71 @@ const PillNav = ({
               </li>
             ))}
           </ul>
+        </div>
+
+        <div className="relative" ref={userMenuRef}>
+          {isLoggedIn ? (
+            <button
+              className="inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center overflow-hidden rounded-full border-0 bg-brand p-1.5 text-white shadow-[0_10px_24px_rgba(194,168,120,0.28)] transition hover:bg-brand-dark hover:scale-105"
+              type="button"
+              aria-label="Abrir menu de usuario"
+              aria-expanded={isUserMenuOpen}
+              onClick={() => setIsUserMenuOpen((open) => !open)}
+            >
+              <span className="flex h-full w-full items-center justify-center rounded-full border border-white/35 bg-brand-dark text-sm font-extrabold uppercase">
+                {userInitial}
+              </span>
+            </button>
+          ) : (
+            <a
+              className={`inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--base)] p-2 no-underline transition hover:scale-105 ${
+                userActive ? "ring-2 ring-brand/45" : ""
+              }`}
+              href={userHref}
+              aria-label="Acceder a usuario"
+            >
+              <span className="relative block h-full w-full rounded-full bg-[#989ca1]" aria-hidden="true">
+                <span className="absolute top-[16%] left-1/2 h-[32%] w-[32%] -translate-x-1/2 rounded-full bg-[var(--base)]" />
+                <span className="absolute right-[17%] bottom-[9%] left-[17%] h-[42%] rounded-t-full bg-[var(--base)]" />
+              </span>
+            </a>
+          )}
+
+          {isLoggedIn && (
+            <div
+              className={`absolute top-[58px] right-0 z-[999] w-[230px] rounded-lg border border-brand/14 bg-white p-2 text-copy shadow-[0_18px_46px_rgba(44,44,44,0.18)] transition ${
+                isUserMenuOpen
+                  ? "visible translate-y-0 opacity-100"
+                  : "invisible -translate-y-2 opacity-0"
+              }`}
+            >
+              <div className="border-b border-brand/12 px-3 py-3">
+                <p className="m-0 truncate text-sm font-bold text-copy">{userLabel}</p>
+                <p className="m-0 mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-brand-dark">
+                  {roleLabel}
+                </p>
+              </div>
+
+              <a
+                className="mt-2 block rounded-md px-3 py-2.5 text-sm font-semibold text-copy no-underline transition hover:bg-brand/12 hover:text-brand-dark"
+                href={primaryUserHref}
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                {userRole === "admin" || userRole === "administrador" ? "Dashboard" : "Ver mis reservas"}
+              </a>
+
+              <button
+                className="block w-full rounded-md border-0 bg-transparent px-3 py-2.5 text-left text-sm font-semibold text-muted transition hover:bg-copy/8 hover:text-copy"
+                type="button"
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  onLogout?.();
+                }}
+              >
+                Cerrar sesion
+              </button>
+            </div>
+          )}
         </div>
 
         <button
