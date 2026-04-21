@@ -1,5 +1,7 @@
 import ThreeDCarousel from "./ThreeDCarousel";
 
+const GALLERY_PAGE_PATH = "/galeria";
+
 const GALLERY_ITEMS = [
   {
     id: 1,
@@ -8,16 +10,16 @@ const GALLERY_ITEMS = [
     description: "Espacios amplios rodeados de naturaleza, ideal para desconectar.",
     tags: ["Naturaleza", "Descanso"],
     imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0979.jpg",
-    link: "#info",
+    link: GALLERY_PAGE_PATH,
   },
   {
     id: 2,
     title: "Interiores acogedores",
     brand: "Casa Rural La Galana",
-    description: "SalÃ³n y estancias pensadas para grupos y familias.",
+    description: "Salón y estancias pensadas para grupos y familias.",
     tags: ["Interior", "Confort"],
     imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0996.jpg",
-    link: "#reserva",
+    link: GALLERY_PAGE_PATH,
   },
   {
     id: 3,
@@ -26,16 +28,16 @@ const GALLERY_ITEMS = [
     description: "Entrada y zona exterior de la vivienda rural.",
     tags: ["Exterior", "Acceso"],
     imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/06/fachada2.jpg",
-    link: "#mapa",
+    link: GALLERY_PAGE_PATH,
   },
   {
     id: 4,
-    title: "Detalle del entorno",
+    title: "Momentos de ocio",
     brand: "Casa Rural La Galana",
-    description: "Imagen de prueba reutilizada para el carrusel 3D.",
-    tags: ["Prueba", "Galeria"],
+    description: "Planes tranquilos para disfrutar con calma en familia o con amigos.",
+    tags: ["Ocio", "Familia"],
     imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0979.jpg",
-    link: "#gallery",
+    link: GALLERY_PAGE_PATH,
   },
 ];
 
@@ -45,17 +47,23 @@ function Gallery() {
       className="scroll-mt-24 bg-white px-6 py-16 text-center sm:px-10 lg:px-0 lg:py-14"
       id="gallery"
     >
-      <h2 className="font-display text-4xl text-copy">Galer­ia</h2>
+      <div className="mx-auto max-w-2xl">
+        <h2 className="font-display text-4xl text-copy">Galería</h2>
+        <p className="mt-3 text-base text-muted">
+          Una primera mirada a la casa. Entra en la galería completa para ver todas las imágenes.
+        </p>
+      </div>
 
       <ThreeDCarousel
         items={GALLERY_ITEMS}
         autoRotate
         rotateInterval={4500}
         cardHeight={480}
-        linkLabel="Saber más"
+        linkLabel="Ver galería"
       />
     </section>
   );
 }
 
 export default Gallery;
+

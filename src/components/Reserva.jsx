@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ShowCalendar from "./Calendar";
+import { showAppAlert } from "../utils/appAlert";
 
 function Reserva() {
   const [selectedDates, setSelectedDates] = useState([null, null]);
@@ -39,7 +40,11 @@ function Reserva() {
     e.preventDefault();
 
     if (!selectedDates[0] || !selectedDates[1]) {
-      alert("Por favor selecciona una fecha de inicio y fin en el calendario.");
+      showAppAlert({
+        title: "Selecciona las fechas",
+        message: "Por favor selecciona una fecha de inicio y fin en el calendario.",
+        variant: "warning",
+      });
       return;
     }
 
@@ -51,9 +56,11 @@ function Reserva() {
     };
 
     console.log("Reserva enviada:", reservationData);
-    alert(
-      `Reserva solicitada del ${reservationData.checkIn} al ${reservationData.checkOut}. Te contactaremos pronto para confirmar.`
-    );
+    showAppAlert({
+      title: "Reserva solicitada",
+      message: `Reserva solicitada del ${reservationData.checkIn} al ${reservationData.checkOut}. Te contactaremos pronto para confirmar.`,
+      variant: "success",
+    });
 
     setFormData({ name: "", email: "", phone: "", observations: "" });
     setSelectedDates([null, null]);

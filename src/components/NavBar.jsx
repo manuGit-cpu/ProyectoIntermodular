@@ -2,26 +2,36 @@ import { useEffect, useState } from "react";
 import PillNav from "./PillNav/PillNav";
 
 const NAV_ITEMS = [
-  { label: "Reserva", href: "#reserva", ariaLabel: "Ir a reservas" },
-  { label: "Inicio", href: "#hero", ariaLabel: "Ir al inicio", variant: "accent" },
-  { label: "Galeri­a", href: "#gallery", ariaLabel: "Ir a la galer­ia", variant: "accent" },
-  { label: "Info", href: "#info", ariaLabel: "Ir a informaciÃ³n", variant: "accent" },
-  { label: "Como llegar", href: "#mapa", ariaLabel: "Ir a contacto y mapa" },
-  { label: "Llamar", href: "tel:+34600000000", ariaLabel: "Llamar por telÃ©fono" },
+  { label: "Reserva", href: "/#reserva", ariaLabel: "Ir a reservas" },
+  { label: "Inicio", href: "/#hero", ariaLabel: "Ir al inicio", variant: "accent" },
+  { label: "Galería", href: "/galeria", ariaLabel: "Ir a la galería", variant: "accent" },
+  { label: "Info", href: "/#info", ariaLabel: "Ir a información", variant: "accent" },
+  {
+    label: "Como llegar",
+    href: "https://maps.app.goo.gl/5abzXP6wxSDkLpgN7",
+    ariaLabel: "Abrir ubicacion en Google Maps",
+    target: "_blank",
+    rel: "noreferrer",
+  },
+  { label: "Llamar", href: "tel:+34600000000", ariaLabel: "Llamar por teléfono" },
   {
     label: "WhatsApp",
-    href: "https://wa.me/34600000000",
+    target: "_blank",
+    href: "https://wa.me/34680797807",
     ariaLabel: "Abrir WhatsApp",
   },
 ];
 
+function getActiveHref() {
+  if (typeof window === "undefined") return "";
+  return window.location.pathname === "/galeria" ? "/galeria" : `/${window.location.hash}`;
+}
+
 function Navbar() {
-  const [activeHref, setActiveHref] = useState(
-    typeof window !== "undefined" ? window.location.hash : ""
-  );
+  const [activeHref, setActiveHref] = useState(getActiveHref);
 
   useEffect(() => {
-    const onHashChange = () => setActiveHref(window.location.hash);
+    const onHashChange = () => setActiveHref(getActiveHref());
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
@@ -31,7 +41,7 @@ function Navbar() {
       <PillNav
         logo="/vite.svg"
         logoAlt="Casa Rural La Galana"
-        logoHref="#hero"
+        logoHref="/#hero"
         items={NAV_ITEMS}
         activeHref={activeHref}
         baseColor="#eae6dc"
@@ -45,3 +55,4 @@ function Navbar() {
 }
 
 export default Navbar;
+

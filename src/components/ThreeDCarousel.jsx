@@ -43,7 +43,7 @@ export default function ThreeDCarousel({
   autoRotate = true,
   rotateInterval = 4000,
   cardHeight = 500,
-  linkLabel = "Ver mÃ¡s",
+  linkLabel = "Ver mas",
   isMobileSwipe = true,
 }) {
   const [active, setActive] = useState(0);
@@ -105,28 +105,37 @@ export default function ThreeDCarousel({
   const slideClass = (index) => {
     const total = items.length;
     const baseClass =
-      "absolute top-1/2 left-1/2 w-full max-w-[28rem] -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition duration-500 ease-out";
+      "absolute top-1/2 left-1/2 w-full max-w-[28rem] -translate-x-1/2 -translate-y-1/2 opacity-0 transition duration-500 ease-out";
 
     if (index === active) {
       return `${baseClass} z-20 scale-100 pointer-events-auto opacity-100`;
     }
 
     if (index === (active + 1) % total) {
-      return `${baseClass} z-10 translate-x-[-10%] -translate-y-1/2 scale-95 opacity-60 max-md:translate-x-[-50%] max-md:scale-[0.92] max-md:opacity-35`;
+      return `${baseClass} pointer-events-none z-10 translate-x-[-10%] -translate-y-1/2 scale-95 opacity-60 max-md:translate-x-[-50%] max-md:scale-[0.92] max-md:opacity-35`;
     }
 
     if (index === (active - 1 + total) % total) {
-      return `${baseClass} z-10 -translate-x-[90%] -translate-y-1/2 scale-95 opacity-60 max-md:translate-x-[-50%] max-md:scale-[0.92] max-md:opacity-35`;
+      return `${baseClass} pointer-events-none z-10 -translate-x-[90%] -translate-y-1/2 scale-95 opacity-60 max-md:translate-x-[-50%] max-md:scale-[0.92] max-md:opacity-35`;
     }
 
-    return `${baseClass} z-0 scale-90 opacity-0`;
+    return `${baseClass} pointer-events-none z-0 scale-90 opacity-0`;
+  };
+
+  const handleLinkClick = (event, href) => {
+    if (!href?.startsWith("/")) return;
+
+    event.preventDefault();
+    window.history.pushState({}, "", href);
+    window.dispatchEvent(new Event("app:navigate"));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <section className="mt-6 w-full" aria-roledescription="carousel">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-0">
         <div
-          className="relative h-[520px] overflow-hidden rounded-xl md:h-[550px] lg:h-[440px]"
+          className="relative h-[570px] overflow-hidden rounded-xl md:h-[600px] lg:h-[500px]"
           style={{ "--carousel-card-height": `${cardHeight}px` }}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
@@ -171,11 +180,7 @@ export default function ThreeDCarousel({
                       <a
                         href={item.link}
                         className="group relative inline-flex items-center gap-1.5 border-b-2 border-transparent pb-0.5 text-sm text-muted transition hover:border-brand hover:text-copy"
-                        onClick={() => {
-                          if (item.link.startsWith("/")) {
-                            window.scrollTo(0, 0);
-                          }
-                        }}
+                        onClick={(event) => handleLinkClick(event, item.link)}
                       >
                         <span>{linkLabel}</span>
                         <IconArrowRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-1" />
@@ -210,7 +215,7 @@ export default function ThreeDCarousel({
           )}
 
           <div
-            className="absolute right-0 bottom-6 left-0 z-30 flex items-center justify-center gap-3"
+            className="pointer-events-none absolute right-0 bottom-7 left-0 z-30 flex items-center justify-center gap-3"
             role="tablist"
             aria-label="Diapositivas"
           >
@@ -220,7 +225,7 @@ export default function ThreeDCarousel({
                 type="button"
                 role="tab"
                 aria-selected={active === idx}
-                className={`h-2 rounded-full transition ${
+                className={`pointer-events-auto h-2 rounded-full transition ${
                   active === idx ? "w-5 bg-brand" : "w-2 bg-stone-300 hover:bg-stone-400"
                 }`}
                 onClick={() => setActive(idx)}

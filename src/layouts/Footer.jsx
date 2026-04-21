@@ -3,13 +3,13 @@ export default function Footer() {
     <footer
       className="scroll-mt-24 bg-[#f3f1ea] px-6 py-16 text-copy sm:px-10"
       id="mapa"
-      aria-label="Pie de pÃ¡gina"
+      aria-label="Pie de pagina"
     >
       <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-8 md:gap-12 lg:grid-cols-[1.5fr_1fr_1fr]">
         <div className="max-w-[520px]">
           <a
             className="inline-flex items-center gap-3.5 text-inherit no-underline"
-            href="#hero"
+            href="/#hero"
             aria-label="Ir al inicio"
           >
             <img className="h-14 w-14" src="/vite.svg" alt="La Galana" />
@@ -37,22 +37,22 @@ export default function Footer() {
           <h3 className="mt-1.5 mb-3.5 text-base font-bold text-copy">La Galana</h3>
           <ul className="grid gap-2.5">
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#reserva">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#reserva">
                 Reserva
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#hero">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#hero">
                 Inicio
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#gallery">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/galeria">
                 Galeria
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#info">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#info">
                 Info
               </a>
             </li>
@@ -60,47 +60,47 @@ export default function Footer() {
 
           <ul className="mt-6 grid gap-2.5">
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#hero">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#hero">
                 Un Lugar Para Descansar
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#reserva">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#reserva">
                 Precios
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#info">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#info">
                 Equipamiento
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#mapa">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#mapa">
                 Localización
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#info">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#info">
                 Actividades
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#mapa">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#mapa">
                 Contacto
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#info">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#info">
                 Política de Privacidad y Cookies
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#info">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#info">
                 Aviso Legal
               </a>
             </li>
             <li>
-              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="#mapa">
+              <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/#mapa">
                 Cómo llegar
               </a>
             </li>
@@ -173,7 +173,7 @@ export default function Footer() {
             </a>
             <a
               className="inline-flex h-[46px] w-[46px] items-center justify-center rounded-full bg-black/6 text-copy no-underline transition hover:-translate-y-0.5 hover:bg-black/10"
-              href="#mapa"
+              href="/#mapa"
               aria-label="Ubicación"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="h-5 w-5">
@@ -183,7 +183,7 @@ export default function Footer() {
             </a>
             <a
               className="inline-flex h-[46px] w-[46px] items-center justify-center rounded-full bg-black/6 text-copy no-underline transition hover:-translate-y-0.5 hover:bg-black/10"
-              href="#reserva"
+              href="/#reserva"
               aria-label="Reservar"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className="h-5 w-5">

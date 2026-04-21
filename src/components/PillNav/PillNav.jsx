@@ -247,6 +247,8 @@ const PillNav = ({
                 <a
                   role="menuitem"
                   href={item.href}
+                  target={item.target}
+                  rel={item.rel}
                   className={`group relative inline-flex h-full items-center justify-center overflow-hidden rounded-full px-5 text-[13px] font-semibold uppercase leading-none tracking-[0.2px] whitespace-nowrap no-underline ${
                     item.variant
                       ? "bg-accent text-[#f4f6ef]"
@@ -311,6 +313,8 @@ const PillNav = ({
             <li key={`pill-mobile-${index}-${item.label}`}>
               <a
                 href={item.href}
+                target={item.target}
+                rel={item.rel}
                 className={`block rounded-[50px] px-4 py-3 text-base font-medium no-underline transition ${
                   item.variant
                     ? "bg-accent text-[#f4f6ef] hover:bg-accent-dark hover:text-white"
