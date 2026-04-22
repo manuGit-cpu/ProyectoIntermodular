@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { supabase } from "../supabase/client.js";
+import { FEATURED_IMAGES } from "../data/laGalanaImages.js";
 
 export default function ShowCalendar({
   showHeading = true,
@@ -79,8 +80,7 @@ export default function ShowCalendar({
     }
   };
 
-  const reservationImage =
-    "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0996.jpg";
+  const reservationImage = FEATURED_IMAGES.reservation;
 
   return (
     <div

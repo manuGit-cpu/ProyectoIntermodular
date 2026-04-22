@@ -10,6 +10,7 @@ import {
   signInDemoUser,
   signOutDemoUser,
 } from "../utils/demoAuth";
+import { FEATURED_IMAGES } from "../data/laGalanaImages";
 
 function LoginPage() {
   const [mode, setMode] = useState("login");
@@ -176,7 +177,7 @@ function LoginPage() {
           <div className="relative hidden min-h-[580px] overflow-hidden bg-copy p-10 text-white lg:block">
             <img
               className="absolute inset-0 h-full w-full object-cover opacity-45"
-              src="https://casaruralgalana.com/wp-content/uploads/2020/11/La-Galana-Casa-Rural-Trabazos-Aliste-Zamora-Escapada-en-familia-35-Imagen-protegida-con-derechos-de-autor-dafy-agencia-1024x576.jpg"
+              src={FEATURED_IMAGES.login}
               alt=""
               aria-hidden="true"
             />

@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/NavBar";
 import ScrollReveal from "../components/ScrollReveal";
 import Footer from "../layouts/Footer";
@@ -9,7 +10,23 @@ const toneClasses = {
   copy: "bg-copy text-white",
 };
 
-function GalleryCard({ item, index }) {
+function ArrowLeftIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+      <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function GalleryCard({ item, index, onOpen }) {
   const featured = index % 7 === 0;
 
   return (
@@ -23,14 +40,21 @@ function GalleryCard({ item, index }) {
         featured ? "sm:col-span-2 sm:row-span-2" : ""
       }`}
     >
-      <img
-        className={`h-full min-h-[220px] w-full object-cover transition duration-500 group-hover:scale-105 ${
-          featured ? "sm:min-h-[460px]" : ""
-        }`}
-        src={item.src}
-        alt={item.alt}
-        loading="lazy"
-      />
+      <button
+        type="button"
+        className="block h-full w-full cursor-zoom-in border-0 bg-transparent p-0 text-left"
+        onClick={onOpen}
+        aria-label={`Ampliar ${item.title}`}
+      >
+        <img
+          className={`h-full min-h-[220px] w-full object-cover transition duration-500 group-hover:scale-105 ${
+            featured ? "sm:min-h-[460px]" : ""
+          }`}
+          src={item.src}
+          alt={item.alt}
+          loading="lazy"
+        />
+      </button>
       <figcaption className="absolute inset-x-0 bottom-0 bg-linear-to-t from-copy/78 via-copy/42 to-transparent px-4 pt-12 pb-4 text-left text-white opacity-0 transition duration-300 group-hover:opacity-100">
         <span className="font-display text-xl">{item.title}</span>
       </figcaption>
@@ -38,7 +62,7 @@ function GalleryCard({ item, index }) {
   );
 }
 
-function GallerySection({ section, index }) {
+function GallerySection({ section, index, startIndex, onOpenImage }) {
   return (
     <ScrollReveal
       as="section"
@@ -62,16 +86,162 @@ function GallerySection({ section, index }) {
 
       <div className="grid auto-rows-[220px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {section.images.map((item, index) => (
-          <GalleryCard key={item.src} item={item} index={index} />
+          <GalleryCard
+            key={item.src}
+            item={item}
+            index={index}
+            onOpen={() => onOpenImage(startIndex + index)}
+          />
         ))}
       </div>
     </ScrollReveal>
   );
 }
 
+function GalleryLightbox({ images, selectedIndex, onClose, onSelect }) {
+  const item = images[selectedIndex];
+
+  useEffect(() => {
+    if (!item) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+
+      if (event.key === "ArrowLeft") {
+        onSelect((selectedIndex - 1 + images.length) % images.length);
+      }
+
+      if (event.key === "ArrowRight") {
+        onSelect((selectedIndex + 1) % images.length);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [images.length, item, onClose, onSelect, selectedIndex]);
+
+  if (!item) return null;
+
+  const showPrevious = () => onSelect((selectedIndex - 1 + images.length) % images.length);
+  const showNext = () => onSelect((selectedIndex + 1) % images.length);
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-copy/92 px-4 py-6 backdrop-blur-sm sm:px-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label={item.title}
+      onClick={onClose}
+    >
+      <div className="relative flex h-full w-full max-w-6xl flex-col items-center justify-center gap-4">
+        <button
+          type="button"
+          className="absolute top-0 right-0 z-10 rounded-full border border-white/20 bg-white/12 px-4 py-2 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/20"
+          onClick={onClose}
+        >
+          Cerrar
+        </button>
+
+        <button
+          type="button"
+          className="absolute top-1/2 left-0 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white backdrop-blur-md transition hover:bg-white/20 sm:inline-flex"
+          onClick={(event) => {
+            event.stopPropagation();
+            showPrevious();
+          }}
+          aria-label="Imagen anterior"
+        >
+          <ArrowLeftIcon className="h-7 w-7" />
+        </button>
+
+        <button
+          type="button"
+          className="absolute top-1/2 right-0 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white backdrop-blur-md transition hover:bg-white/20 sm:inline-flex"
+          onClick={(event) => {
+            event.stopPropagation();
+            showNext();
+          }}
+          aria-label="Imagen siguiente"
+        >
+          <ArrowRightIcon className="h-7 w-7" />
+        </button>
+
+        <figure
+          className="m-0 flex max-h-full w-full flex-col items-center gap-4"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <img
+            className="max-h-[78vh] w-auto max-w-full rounded-lg object-contain shadow-[0_24px_80px_rgba(0,0,0,0.38)]"
+            src={item.src}
+            alt={item.alt}
+          />
+          <figcaption className="text-center text-white">
+            <p className="font-display text-2xl">{item.title}</p>
+            <p className="mt-1 text-sm font-semibold text-white/68">
+              {item.sectionTitle} · {selectedIndex + 1} de {images.length}
+            </p>
+          </figcaption>
+        </figure>
+
+        <div className="flex gap-3 sm:hidden">
+          <button
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white backdrop-blur-md"
+            onClick={(event) => {
+              event.stopPropagation();
+              showPrevious();
+            }}
+            aria-label="Imagen anterior"
+          >
+            <ArrowLeftIcon className="h-6 w-6" />
+          </button>
+          <button
+            type="button"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white backdrop-blur-md"
+            onClick={(event) => {
+              event.stopPropagation();
+              showNext();
+            }}
+            aria-label="Imagen siguiente"
+          >
+            <ArrowRightIcon className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GalleryPage() {
+  const [selectedIndex, setSelectedIndex] = useState(null);
   const totalImages = GALLERY_SECTIONS.reduce((total, section) => total + section.images.length, 0);
-  const heroImage = GALLERY_SECTIONS[2].images[0];
+  const heroImage = GALLERY_SECTIONS[0].images[1];
+  const sectionStartIndexes = useMemo(
+    () =>
+      GALLERY_SECTIONS.reduce((indexes, section, index) => {
+        const previousTotal =
+          index === 0 ? 0 : indexes[index - 1] + GALLERY_SECTIONS[index - 1].images.length;
+        return [...indexes, previousTotal];
+      }, []),
+    []
+  );
+  const galleryImages = useMemo(
+    () =>
+      GALLERY_SECTIONS.flatMap((section) =>
+        section.images.map((image) => ({
+          ...image,
+          sectionTitle: section.title,
+        }))
+      ),
+    []
+  );
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-surface text-copy">
@@ -101,7 +271,7 @@ function GalleryPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 rounded-lg border border-white/16 bg-white/10 p-2 backdrop-blur-md">
+            <div className="grid grid-cols-2 gap-2 rounded-lg border border-white/16 bg-white/10 p-2 backdrop-blur-md">
               {GALLERY_SECTIONS.map((section) => (
                 <a
                   key={section.id}
@@ -112,7 +282,7 @@ function GalleryPage() {
                   {section.title}
                 </a>
               ))}
-              <div className="col-span-3 rounded-md bg-brand px-4 py-3 text-center text-sm font-bold text-white">
+              <div className="col-span-2 rounded-md bg-brand px-4 py-3 text-center text-sm font-bold text-white">
                 {totalImages} imágenes en total
               </div>
             </div>
@@ -138,12 +308,25 @@ function GalleryPage() {
 
         <div className="mx-auto max-w-6xl px-6 sm:px-10 lg:px-0">
           {GALLERY_SECTIONS.map((section, index) => (
-            <GallerySection key={section.id} section={section} index={index} />
+            <GallerySection
+              key={section.id}
+              section={section}
+              index={index}
+              startIndex={sectionStartIndexes[index]}
+              onOpenImage={setSelectedIndex}
+            />
           ))}
         </div>
       </main>
 
       <Footer />
+
+      <GalleryLightbox
+        images={galleryImages}
+        selectedIndex={selectedIndex}
+        onClose={() => setSelectedIndex(null)}
+        onSelect={setSelectedIndex}
+      />
     </div>
   );
 }
