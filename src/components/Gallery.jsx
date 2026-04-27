@@ -1,4 +1,5 @@
 import ThreeDCarousel from "./ThreeDCarousel";
+import { FEATURED_IMAGES } from "../data/laGalanaImages";
 
 const GALLERY_PAGE_PATH = "/galeria";
 
@@ -9,16 +10,16 @@ const GALLERY_ITEMS = [
     brand: "Casa Rural La Galana",
     description: "Espacios amplios rodeados de naturaleza, ideal para desconectar.",
     tags: ["Naturaleza", "Descanso"],
-    imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0979.jpg",
+    imageUrl: FEATURED_IMAGES.exterior,
     link: GALLERY_PAGE_PATH,
   },
   {
     id: 2,
     title: "Interiores acogedores",
     brand: "Casa Rural La Galana",
-    description: "Salón y estancias pensadas para grupos y familias.",
+    description: "Salon y estancias pensadas para grupos y familias.",
     tags: ["Interior", "Confort"],
-    imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0996.jpg",
+    imageUrl: FEATURED_IMAGES.livingRoom,
     link: GALLERY_PAGE_PATH,
   },
   {
@@ -27,16 +28,16 @@ const GALLERY_ITEMS = [
     brand: "Casa Rural La Galana",
     description: "Entrada y zona exterior de la vivienda rural.",
     tags: ["Exterior", "Acceso"],
-    imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/06/fachada2.jpg",
+    imageUrl: FEATURED_IMAGES.hero,
     link: GALLERY_PAGE_PATH,
   },
   {
     id: 4,
-    title: "Momentos de ocio",
+    title: "Habitaciones",
     brand: "Casa Rural La Galana",
-    description: "Planes tranquilos para disfrutar con calma en familia o con amigos.",
-    tags: ["Ocio", "Familia"],
-    imageUrl: "https://casaruralgalana.com/wp-content/uploads/2014/03/T4Q0979.jpg",
+    description: "Dormitorios cuidados para una estancia tranquila y comoda.",
+    tags: ["Dormitorio", "Descanso"],
+    imageUrl: FEATURED_IMAGES.bedroom,
     link: GALLERY_PAGE_PATH,
   },
 ];
@@ -48,9 +49,9 @@ function Gallery() {
       id="gallery"
     >
       <div className="mx-auto max-w-2xl">
-        <h2 className="font-display text-4xl text-copy">Galería</h2>
+        <h2 className="font-display text-4xl text-copy">Galeria</h2>
         <p className="mt-3 text-base text-muted">
-          Una primera mirada a la casa. Entra en la galería completa para ver todas las imágenes.
+          Una primera mirada a la casa. Entra en la galeria completa para ver todas las imagenes.
         </p>
       </div>
 
@@ -59,11 +60,10 @@ function Gallery() {
         autoRotate
         rotateInterval={4500}
         cardHeight={480}
-        linkLabel="Ver galería"
+        linkLabel="Ver galeria"
       />
     </section>
   );
 }
 
 export default Gallery;
-

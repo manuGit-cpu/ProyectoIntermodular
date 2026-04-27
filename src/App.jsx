@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Home from "./pages/Home";
 import GalleryPage from "./pages/GalleryPage";
+import LoginPage from "./pages/LoginPage";
 
 function App() {
   const [pathname, setPathname] = useState(window.location.pathname);
@@ -17,8 +18,10 @@ function App() {
     };
   }, []);
 
-  return pathname === "/galeria" ? <GalleryPage /> : <Home />;
+  if (pathname === "/galeria") return <GalleryPage />;
+  if (pathname === "/login") return <LoginPage />;
+
+  return <Home />;
 }
 
 export default App;
-

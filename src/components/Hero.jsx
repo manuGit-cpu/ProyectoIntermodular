@@ -1,9 +1,11 @@
+import { FEATURED_IMAGES } from "../data/laGalanaImages";
+
 function Hero() {
   return (
     <section
       className="relative mt-[72px] flex min-h-[90vh] scroll-mt-24 items-center overflow-hidden bg-stone-900 bg-cover bg-center bg-no-repeat px-6 sm:px-10 lg:px-16"
       id="hero"
-      style={{ backgroundImage: 'url("/hero.jpg")' }}
+      style={{ backgroundImage: `url("${FEATURED_IMAGES.hero}")` }}
     >
       <div className="absolute inset-0 bg-neutral-900/45" aria-hidden="true" />
 
