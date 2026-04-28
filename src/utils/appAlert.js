@@ -1,6 +1,6 @@
 const STACK_ID = "appAlertStack";
 
-function ensureAlertStack() {
+function asegurarPilaAlertas() {
   let stack = document.getElementById(STACK_ID);
 
   if (stack) return stack;
@@ -15,7 +15,7 @@ function ensureAlertStack() {
   return stack;
 }
 
-function getAlertCopy(variant) {
+function obtenerTextoAlerta(variant) {
   if (variant === "success") {
     return {
       badge: "Correcto",
@@ -42,7 +42,7 @@ function getAlertCopy(variant) {
   };
 }
 
-function escapeHtml(value) {
+function escaparHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -51,11 +51,11 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-export function showAppAlert(options) {
+export function mostrarAlertaApp(options) {
   const { title = "", message = "", variant = "error", duration = 4500 } = options || {};
 
-  const stack = ensureAlertStack();
-  const copy = getAlertCopy(variant);
+  const stack = asegurarPilaAlertas();
+  const copy = obtenerTextoAlerta(variant);
   const toast = document.createElement("section");
   const titleText = title || copy.title;
 
@@ -67,7 +67,7 @@ export function showAppAlert(options) {
     '<div class="app-alert-content">' +
     '  <div class="app-alert-header">' +
     '    <span class="app-alert-badge">' +
-    escapeHtml(copy.badge) +
+    escaparHtml(copy.badge) +
     "</span>" +
     '    <button type="button" class="app-alert-close" aria-label="Cerrar aviso">' +
     '      <span aria-hidden="true">&times;</span>' +
@@ -81,16 +81,16 @@ export function showAppAlert(options) {
     "    </div>" +
     "    <div>" +
     '      <p class="app-alert-title">' +
-    escapeHtml(titleText) +
+    escaparHtml(titleText) +
     "</p>" +
     '      <p class="app-alert-message">' +
-    escapeHtml(message) +
+    escaparHtml(message) +
     "</p>" +
     "    </div>" +
     "  </div>" +
     "</div>";
 
-  function removeToast() {
+  function eliminarAviso() {
     if (!toast.isConnected) return;
 
     toast.classList.add("app-alert-leave");
@@ -103,12 +103,12 @@ export function showAppAlert(options) {
 
   const closeButton = toast.querySelector(".app-alert-close");
   if (closeButton) {
-    closeButton.addEventListener("click", removeToast);
+    closeButton.addEventListener("click", eliminarAviso);
   }
 
   stack.appendChild(toast);
 
   if (duration > 0) {
-    window.setTimeout(removeToast, duration);
+    window.setTimeout(eliminarAviso, duration);
   }
 }

@@ -1,4 +1,4 @@
-import ThreeDCarousel from "./ThreeDCarousel";
+import CarruselTresD from "./ThreeDCarousel";
 import { FEATURED_IMAGES } from "../data/laGalanaImages";
 
 const GALLERY_PAGE_PATH = "/galeria";
@@ -42,7 +42,7 @@ const GALLERY_ITEMS = [
   },
 ];
 
-function Gallery() {
+function Galeria() {
   return (
     <section
       className="scroll-mt-24 bg-white px-6 py-16 text-center sm:px-10 lg:px-0 lg:py-14"
@@ -55,7 +55,7 @@ function Gallery() {
         </p>
       </div>
 
-      <ThreeDCarousel
+      <CarruselTresD
         items={GALLERY_ITEMS}
         autoRotate
         rotateInterval={4500}
@@ -66,4 +66,4 @@ function Gallery() {
   );
 }
 
-export default Gallery;
+export default Galeria;

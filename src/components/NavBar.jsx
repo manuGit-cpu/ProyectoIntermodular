@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import PillNav from "./PillNav/PillNav";
+import NavegacionPildora from "./PillNav/PillNav";
 import { supabase } from "../supabase/client";
-import { showAppAlert } from "../utils/appAlert";
-import { getDemoUser, signOutDemoUser } from "../utils/demoAuth";
+import { mostrarAlertaApp } from "../utils/appAlert";
+import { obtenerUsuarioDemo, cerrarSesionUsuarioDemo } from "../utils/demoAuth";
 
 const NAV_ITEMS = [
   { label: "Reserva", href: "/#reserva", ariaLabel: "Ir a reservas" },
@@ -25,34 +25,34 @@ const NAV_ITEMS = [
   },
 ];
 
-function getActiveHref() {
+function obtenerHrefActivo() {
   if (typeof window === "undefined") return "";
   if (window.location.pathname === "/login") return "/login";
   return window.location.pathname === "/galeria" ? "/galeria" : `/${window.location.hash}`;
 }
 
-function Navbar() {
-  const [activeHref, setActiveHref] = useState(getActiveHref);
+function BarraNavegacion() {
+  const [activeHref, setActiveHref] = useState(obtenerHrefActivo);
   const [sessionUser, setSessionUser] = useState(null);
   const [userRole, setUserRole] = useState("cliente");
 
   useEffect(() => {
-    const onRouteChange = () => setActiveHref(getActiveHref());
+    const manejarCambioRuta = () => setActiveHref(obtenerHrefActivo());
 
-    window.addEventListener("hashchange", onRouteChange);
-    window.addEventListener("popstate", onRouteChange);
-    window.addEventListener("app:navigate", onRouteChange);
+    window.addEventListener("hashchange", manejarCambioRuta);
+    window.addEventListener("popstate", manejarCambioRuta);
+    window.addEventListener("app:navigate", manejarCambioRuta);
 
     return () => {
-      window.removeEventListener("hashchange", onRouteChange);
-      window.removeEventListener("popstate", onRouteChange);
-      window.removeEventListener("app:navigate", onRouteChange);
+      window.removeEventListener("hashchange", manejarCambioRuta);
+      window.removeEventListener("popstate", manejarCambioRuta);
+      window.removeEventListener("app:navigate", manejarCambioRuta);
     };
   }, []);
 
   useEffect(() => {
-    async function loadProfile(user) {
-      const demoUser = getDemoUser();
+    async function cargarPerfil(user) {
+      const demoUser = obtenerUsuarioDemo();
       const currentUser = user || demoUser;
 
       setSessionUser(currentUser);
@@ -78,29 +78,29 @@ function Navbar() {
 
     if (supabase) {
       supabase.auth.getUser().then(({ data }) => {
-        loadProfile(data.user);
+        cargarPerfil(data.user);
       });
     } else {
-      loadProfile(null);
+      cargarPerfil(null);
     }
 
-    const onDemoAuthChange = () => loadProfile(null);
-    window.addEventListener("app:demo-auth", onDemoAuthChange);
+    const manejarCambioAutenticacionDemo = () => cargarPerfil(null);
+    window.addEventListener("app:demo-auth", manejarCambioAutenticacionDemo);
 
     const authListener = supabase
       ? supabase.auth.onAuthStateChange((_event, session) => {
-          loadProfile(session?.user ?? null);
+          cargarPerfil(session?.user ?? null);
         })
       : null;
 
     return () => {
-      window.removeEventListener("app:demo-auth", onDemoAuthChange);
+      window.removeEventListener("app:demo-auth", manejarCambioAutenticacionDemo);
       authListener?.data.subscription.unsubscribe();
     };
   }, []);
 
-  async function handleLogout() {
-    signOutDemoUser();
+  async function manejarCierreSesion() {
+    cerrarSesionUsuarioDemo();
 
     if (supabase) {
       await supabase.auth.signOut();
@@ -109,7 +109,7 @@ function Navbar() {
     setSessionUser(null);
     setUserRole("cliente");
 
-    showAppAlert({
+    mostrarAlertaApp({
       title: "Sesion cerrada",
       message: "Has salido de tu cuenta.",
       variant: "success",
@@ -121,7 +121,7 @@ function Navbar() {
 
   return (
     <header className="pointer-events-none fixed top-0 left-0 z-50 flex w-full items-start justify-center bg-linear-to-b from-surface/95 via-surface/85 to-transparent px-4 pt-3 pb-4 md:px-6">
-      <PillNav
+      <NavegacionPildora
         logo="/vite.svg"
         logoAlt="Casa Rural La Galana"
         logoHref="/#hero"
@@ -131,7 +131,7 @@ function Navbar() {
         userActive={activeHref === "/login"}
         user={sessionUser}
         userRole={userRole}
-        onLogout={handleLogout}
+        onLogout={manejarCierreSesion}
         baseColor="#eae6dc"
         pillColor="var(--color-brand)"
         hoveredPillTextColor="#ffffff"
@@ -142,4 +142,4 @@ function Navbar() {
   );
 }
 
-export default Navbar;
+export default BarraNavegacion;

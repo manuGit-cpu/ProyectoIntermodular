@@ -1,6 +1,6 @@
 import { FEATURED_IMAGES } from "../data/laGalanaImages";
 
-function Hero() {
+function Portada() {
   return (
     <section
       className="relative mt-[72px] flex min-h-[90vh] scroll-mt-24 items-center overflow-hidden bg-stone-900 bg-cover bg-center bg-no-repeat px-6 sm:px-10 lg:px-16"
@@ -27,4 +27,4 @@ function Hero() {
   );
 }
 
-export default Hero;
+export default Portada;

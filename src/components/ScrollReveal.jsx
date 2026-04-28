@@ -1,23 +1,23 @@
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
-function useMediaQuery(query) {
+function useConsultaMedios(query) {
   const [matches, setMatches] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(query);
-    const handleChange = () => setMatches(mediaQuery.matches);
+    const manejarCambio = () => setMatches(mediaQuery.matches);
 
-    handleChange();
-    mediaQuery.addEventListener("change", handleChange);
+    manejarCambio();
+    mediaQuery.addEventListener("change", manejarCambio);
 
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", manejarCambio);
   }, [query]);
 
   return matches;
 }
 
-function ScrollReveal({
+function RevelarAlDesplazar({
   children,
   as = "div",
   className = "",
@@ -31,7 +31,7 @@ function ScrollReveal({
   ...props
 }) {
   const reduceMotion = useReducedMotion();
-  const isMobile = useMediaQuery("(max-width: 640px)");
+  const isMobile = useConsultaMedios("(max-width: 640px)");
   const MotionTag = motion[as] ?? motion.div;
   const initialX = isMobile && mobileX !== undefined ? mobileX : x;
   const initialY = isMobile && mobileY !== undefined ? mobileY : y;
@@ -54,4 +54,4 @@ function ScrollReveal({
   );
 }
 
-export default ScrollReveal;
+export default RevelarAlDesplazar;

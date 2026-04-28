@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import Navbar from "../components/NavBar";
-import ScrollReveal from "../components/ScrollReveal";
-import Footer from "../layouts/Footer";
+import BarraNavegacion from "../components/NavBar";
+import RevelarAlDesplazar from "../components/ScrollReveal";
+import PiePagina from "../layouts/Footer";
 import { GALLERY_SECTIONS } from "../data/galleryImages";
 
 const toneClasses = {
@@ -10,7 +10,7 @@ const toneClasses = {
   copy: "bg-copy text-white",
 };
 
-function ArrowLeftIcon({ className }) {
+function IconoFlechaIzquierda({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
       <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -18,7 +18,7 @@ function ArrowLeftIcon({ className }) {
   );
 }
 
-function ArrowRightIcon({ className }) {
+function IconoFlechaDerecha({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true">
       <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
@@ -26,11 +26,11 @@ function ArrowRightIcon({ className }) {
   );
 }
 
-function GalleryCard({ item, index, onOpen }) {
+function TarjetaGaleria({ item, index, onOpen }) {
   const featured = index % 7 === 0;
 
   return (
-    <ScrollReveal
+    <RevelarAlDesplazar
       as="figure"
       x={index % 2 === 0 ? -42 : 42}
       mobileX={index % 2 === 0 ? -16 : 16}
@@ -58,13 +58,13 @@ function GalleryCard({ item, index, onOpen }) {
       <figcaption className="absolute inset-x-0 bottom-0 bg-linear-to-t from-copy/78 via-copy/42 to-transparent px-4 pt-12 pb-4 text-left text-white opacity-0 transition duration-300 group-hover:opacity-100">
         <span className="font-display text-xl">{item.title}</span>
       </figcaption>
-    </ScrollReveal>
+    </RevelarAlDesplazar>
   );
 }
 
-function GallerySection({ section, index, startIndex, onOpenImage }) {
+function SeccionGaleria({ section, index, startIndex, onOpenImage }) {
   return (
-    <ScrollReveal
+    <RevelarAlDesplazar
       as="section"
       id={section.id}
       x={index % 2 === 0 ? -56 : 56}
@@ -86,7 +86,7 @@ function GallerySection({ section, index, startIndex, onOpenImage }) {
 
       <div className="grid auto-rows-[220px] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {section.images.map((item, index) => (
-          <GalleryCard
+          <TarjetaGaleria
             key={item.src}
             item={item}
             index={index}
@@ -94,17 +94,17 @@ function GallerySection({ section, index, startIndex, onOpenImage }) {
           />
         ))}
       </div>
-    </ScrollReveal>
+    </RevelarAlDesplazar>
   );
 }
 
-function GalleryLightbox({ images, selectedIndex, onClose, onSelect }) {
+function VisorGaleria({ images, selectedIndex, onClose, onSelect }) {
   const item = images[selectedIndex];
 
   useEffect(() => {
     if (!item) return;
 
-    const handleKeyDown = (event) => {
+    const manejarTeclaPulsada = (event) => {
       if (event.key === "Escape") {
         onClose();
       }
@@ -119,18 +119,18 @@ function GalleryLightbox({ images, selectedIndex, onClose, onSelect }) {
     };
 
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", manejarTeclaPulsada);
 
     return () => {
       document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", manejarTeclaPulsada);
     };
   }, [images.length, item, onClose, onSelect, selectedIndex]);
 
   if (!item) return null;
 
-  const showPrevious = () => onSelect((selectedIndex - 1 + images.length) % images.length);
-  const showNext = () => onSelect((selectedIndex + 1) % images.length);
+  const mostrarAnterior = () => onSelect((selectedIndex - 1 + images.length) % images.length);
+  const mostrarSiguiente = () => onSelect((selectedIndex + 1) % images.length);
 
   return (
     <div
@@ -154,11 +154,11 @@ function GalleryLightbox({ images, selectedIndex, onClose, onSelect }) {
           className="absolute top-1/2 left-0 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white backdrop-blur-md transition hover:bg-white/20 sm:inline-flex"
           onClick={(event) => {
             event.stopPropagation();
-            showPrevious();
+            mostrarAnterior();
           }}
           aria-label="Imagen anterior"
         >
-          <ArrowLeftIcon className="h-7 w-7" />
+          <IconoFlechaIzquierda className="h-7 w-7" />
         </button>
 
         <button
@@ -166,11 +166,11 @@ function GalleryLightbox({ images, selectedIndex, onClose, onSelect }) {
           className="absolute top-1/2 right-0 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white backdrop-blur-md transition hover:bg-white/20 sm:inline-flex"
           onClick={(event) => {
             event.stopPropagation();
-            showNext();
+            mostrarSiguiente();
           }}
           aria-label="Imagen siguiente"
         >
-          <ArrowRightIcon className="h-7 w-7" />
+          <IconoFlechaDerecha className="h-7 w-7" />
         </button>
 
         <figure
@@ -196,22 +196,22 @@ function GalleryLightbox({ images, selectedIndex, onClose, onSelect }) {
             className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white backdrop-blur-md"
             onClick={(event) => {
               event.stopPropagation();
-              showPrevious();
+              mostrarAnterior();
             }}
             aria-label="Imagen anterior"
           >
-            <ArrowLeftIcon className="h-6 w-6" />
+            <IconoFlechaIzquierda className="h-6 w-6" />
           </button>
           <button
             type="button"
             className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/12 text-white backdrop-blur-md"
             onClick={(event) => {
               event.stopPropagation();
-              showNext();
+              mostrarSiguiente();
             }}
             aria-label="Imagen siguiente"
           >
-            <ArrowRightIcon className="h-6 w-6" />
+            <IconoFlechaDerecha className="h-6 w-6" />
           </button>
         </div>
       </div>
@@ -219,7 +219,7 @@ function GalleryLightbox({ images, selectedIndex, onClose, onSelect }) {
   );
 }
 
-function GalleryPage() {
+function PaginaGaleria() {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const totalImages = GALLERY_SECTIONS.reduce((total, section) => total + section.images.length, 0);
   const heroImage = GALLERY_SECTIONS[0].images[1];
@@ -245,7 +245,7 @@ function GalleryPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-surface text-copy">
-      <Navbar />
+      <BarraNavegacion />
 
       <main>
         <section className="relative mt-[72px] overflow-hidden bg-copy px-6 py-18 text-white sm:px-10 lg:px-16 lg:py-24">
@@ -308,7 +308,7 @@ function GalleryPage() {
 
         <div className="mx-auto max-w-6xl px-6 sm:px-10 lg:px-0">
           {GALLERY_SECTIONS.map((section, index) => (
-            <GallerySection
+            <SeccionGaleria
               key={section.id}
               section={section}
               index={index}
@@ -319,9 +319,9 @@ function GalleryPage() {
         </div>
       </main>
 
-      <Footer />
+      <PiePagina />
 
-      <GalleryLightbox
+      <VisorGaleria
         images={galleryImages}
         selectedIndex={selectedIndex}
         onClose={() => setSelectedIndex(null)}
@@ -331,4 +331,4 @@ function GalleryPage() {
   );
 }
 
-export default GalleryPage;
+export default PaginaGaleria;

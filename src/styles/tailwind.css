@@ -145,7 +145,7 @@
   }
 
   .calendar-shell--reservation .react-calendar {
-    @apply w-full rounded-[1.9rem] border-brand/12 bg-[#f7f1e5] p-3 text-copy sm:p-4 lg:min-h-[390px] lg:p-3;
+    @apply w-full rounded-[1.9rem] border-brand/12 bg-[#f7f1e5] p-3 text-copy sm:p-4 lg:min-h-[550px] lg:p-3;
   }
 
   .calendar-shell--reservation .calendar-shell__calendar--reservation {
@@ -175,7 +175,7 @@
   }
 
   .calendar-shell--reservation .react-calendar__tile {
-    @apply text-copy lg:min-h-[44px] lg:px-1 lg:py-1.5 lg:text-[0.85rem];
+      @apply text-copy lg:min-h-[58px] lg:px-1 lg:py-2 lg:text-[1.05rem] lg:leading-none;
   }
 
   .calendar-shell--reservation .react-calendar__tile:enabled:hover,

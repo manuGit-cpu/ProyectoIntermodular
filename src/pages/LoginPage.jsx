@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/NavBar";
-import Footer from "../layouts/Footer";
+import BarraNavegacion from "../components/NavBar";
+import PiePagina from "../layouts/Footer";
 import { supabase } from "../supabase/client";
-import { showAppAlert } from "../utils/appAlert";
+import { mostrarAlertaApp } from "../utils/appAlert";
 import {
   DEMO_CLIENT_USER,
   DEMO_USER,
-  getDemoUser,
-  signInDemoUser,
-  signOutDemoUser,
+  obtenerUsuarioDemo,
+  iniciarSesionUsuarioDemo,
+  cerrarSesionUsuarioDemo,
 } from "../utils/demoAuth";
 import { FEATURED_IMAGES } from "../data/laGalanaImages";
 
-function LoginPage() {
+function PaginaLogin() {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +21,7 @@ function LoginPage() {
   const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    const demoUser = getDemoUser();
+    const demoUser = obtenerUsuarioDemo();
 
     if (demoUser) {
       setUserEmail(demoUser.email);
@@ -36,11 +36,11 @@ function LoginPage() {
 
   const isRegister = mode === "register";
 
-  async function handleSubmit(event) {
+  async function manejarEnvio(event) {
     event.preventDefault();
 
     if (!supabase && isRegister) {
-      showAppAlert({
+      mostrarAlertaApp({
         title: "Supabase no esta configurado",
         message: "El registro real necesita VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.",
         variant: "warning",
@@ -49,7 +49,7 @@ function LoginPage() {
     }
 
     if (!email || !password || (isRegister && !name)) {
-      showAppAlert({
+      mostrarAlertaApp({
         message: "Completa todos los campos para continuar.",
         variant: "warning",
       });
@@ -82,7 +82,7 @@ function LoginPage() {
           });
         }
 
-        showAppAlert({
+        mostrarAlertaApp({
           title: "Cuenta creada",
           message: "Ya puedes acceder con tus datos.",
           variant: "success",
@@ -90,7 +90,7 @@ function LoginPage() {
         setMode("login");
       } else {
         if (!supabase) {
-          const demoUser = signInDemoUser(email, password);
+          const demoUser = iniciarSesionUsuarioDemo(email, password);
 
           if (!demoUser) {
             throw new Error(
@@ -99,7 +99,7 @@ function LoginPage() {
           }
 
           setUserEmail(demoUser.email);
-          showAppAlert({
+          mostrarAlertaApp({
             title: "Sesion demo iniciada",
             message: "Has accedido con el usuario local temporal.",
             variant: "success",
@@ -115,12 +115,12 @@ function LoginPage() {
         });
 
         if (error) {
-          const demoUser = signInDemoUser(email, password);
+          const demoUser = iniciarSesionUsuarioDemo(email, password);
 
           if (!demoUser) throw error;
 
           setUserEmail(demoUser.email);
-          showAppAlert({
+          mostrarAlertaApp({
             title: "Sesion demo iniciada",
             message: "Supabase no acepto el acceso, se uso el usuario local temporal.",
             variant: "success",
@@ -131,7 +131,7 @@ function LoginPage() {
         }
 
         setUserEmail(data.user?.email ?? email);
-        showAppAlert({
+        mostrarAlertaApp({
           title: "Sesion iniciada",
           message: "Has accedido correctamente.",
           variant: "success",
@@ -140,7 +140,7 @@ function LoginPage() {
         window.dispatchEvent(new Event("app:navigate"));
       }
     } catch (error) {
-      showAppAlert({
+      mostrarAlertaApp({
         title: "No se pudo acceder",
         message: error.message || "Revisa el email y la contrasena.",
         variant: "warning",
@@ -150,15 +150,15 @@ function LoginPage() {
     }
   }
 
-  async function handleLogout() {
-    signOutDemoUser();
+  async function manejarCierreSesion() {
+    cerrarSesionUsuarioDemo();
 
     if (supabase) {
       await supabase.auth.signOut();
     }
 
     setUserEmail("");
-    showAppAlert({
+    mostrarAlertaApp({
       title: "Sesion cerrada",
       message: "Has salido de tu cuenta.",
       variant: "success",
@@ -167,7 +167,7 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-surface text-copy">
-      <Navbar />
+      <BarraNavegacion />
 
       <main className="relative isolate flex min-h-screen items-center justify-center overflow-hidden px-4 pt-28 pb-16 sm:px-6">
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(135deg,#f8f7f3_0%,#efe7d7_48%,#f8f7f3_100%)]" />
@@ -231,13 +231,13 @@ function LoginPage() {
                   <button
                     className="h-12 rounded-full border border-brand/22 bg-white px-6 text-sm font-bold text-copy transition hover:border-brand/45 hover:text-brand-dark"
                     type="button"
-                    onClick={handleLogout}
+                    onClick={manejarCierreSesion}
                   >
                     Cerrar sesion
                   </button>
                 </div>
               ) : (
-                <form className="mt-8 grid gap-4" onSubmit={handleSubmit}>
+                <form className="mt-8 grid gap-4" onSubmit={manejarEnvio}>
                   {isRegister && (
                     <label className="grid gap-2 text-sm font-semibold text-copy">
                       Nombre
@@ -297,9 +297,9 @@ function LoginPage() {
         </section>
       </main>
 
-      <Footer />
+      <PiePagina />
     </div>
   );
 }
 
-export default LoginPage;
+export default PaginaLogin;

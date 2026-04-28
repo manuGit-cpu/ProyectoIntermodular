@@ -17,13 +17,13 @@ export const DEMO_CLIENT_USER = {
 const DEMO_USERS = [DEMO_USER, DEMO_CLIENT_USER];
 const STORAGE_KEY = "lagalana_demo_user";
 
-export function getDemoUser() {
+export function obtenerUsuarioDemo() {
   const storedUser = window.localStorage.getItem(STORAGE_KEY);
 
   return storedUser ? JSON.parse(storedUser) : null;
 }
 
-export function signInDemoUser(email, password) {
+export function iniciarSesionUsuarioDemo(email, password) {
   const demoUser = DEMO_USERS.find(
     (user) => user.email === email && user.password === password
   );
@@ -47,7 +47,7 @@ export function signInDemoUser(email, password) {
   return user;
 }
 
-export function signOutDemoUser() {
+export function cerrarSesionUsuarioDemo() {
   window.localStorage.removeItem(STORAGE_KEY);
   window.dispatchEvent(new Event("app:demo-auth"));
 }

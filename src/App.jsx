@@ -1,27 +1,27 @@
 import { useEffect, useState } from "react";
-import Home from "./pages/Home";
-import GalleryPage from "./pages/GalleryPage";
-import LoginPage from "./pages/LoginPage";
+import Inicio from "./pages/Home";
+import PaginaGaleria from "./pages/GalleryPage";
+import PaginaLogin from "./pages/LoginPage";
 
-function App() {
+function Aplicacion() {
   const [pathname, setPathname] = useState(window.location.pathname);
 
   useEffect(() => {
-    const handleRouteChange = () => setPathname(window.location.pathname);
+    const manejarCambioRuta = () => setPathname(window.location.pathname);
 
-    window.addEventListener("popstate", handleRouteChange);
-    window.addEventListener("app:navigate", handleRouteChange);
+    window.addEventListener("popstate", manejarCambioRuta);
+    window.addEventListener("app:navigate", manejarCambioRuta);
 
     return () => {
-      window.removeEventListener("popstate", handleRouteChange);
-      window.removeEventListener("app:navigate", handleRouteChange);
+      window.removeEventListener("popstate", manejarCambioRuta);
+      window.removeEventListener("app:navigate", manejarCambioRuta);
     };
   }, []);
 
-  if (pathname === "/galeria") return <GalleryPage />;
-  if (pathname === "/login") return <LoginPage />;
+  if (pathname === "/galeria") return <PaginaGaleria />;
+  if (pathname === "/login") return <PaginaLogin />;
 
-  return <Home />;
+  return <Inicio />;
 }
 
-export default App;
+export default Aplicacion;
