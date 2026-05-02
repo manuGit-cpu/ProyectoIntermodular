@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Inicio from "./pages/Home";
 import PaginaGaleria from "./pages/GalleryPage";
 import PaginaLogin from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
 
 function Aplicacion() {
   const [pathname, setPathname] = useState(window.location.pathname);
@@ -20,6 +21,7 @@ function Aplicacion() {
 
   if (pathname === "/galeria") return <PaginaGaleria />;
   if (pathname === "/login") return <PaginaLogin />;
+  if (pathname === "/dashboard") return <DashboardPage />;
 
   return <Inicio />;
 }

@@ -46,6 +46,7 @@ export default function MostrarCalendario({
         fechas.add(formatearFecha(fechaActual));
         fechaActual.setDate(fechaActual.getDate() + 1);
       }
+      
     });
 
     return fechas;

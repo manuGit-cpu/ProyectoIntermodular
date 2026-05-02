@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import BarraNavegacion from "../components/NavBar";
 import RevelarAlDesplazar from "../components/ScrollReveal";
 import PiePagina from "../layouts/Footer";
-import { GALLERY_SECTIONS } from "../data/galleryImages";
+import { fetchGallerySections } from "../services/galleryService";
 
 const toneClasses = {
   brand: "bg-brand text-white",
@@ -220,27 +220,53 @@ function VisorGaleria({ images, selectedIndex, onClose, onSelect }) {
 }
 
 function PaginaGaleria() {
+  const [gallerySections, setGallerySections] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(null);
-  const totalImages = GALLERY_SECTIONS.reduce((total, section) => total + section.images.length, 0);
-  const heroImage = GALLERY_SECTIONS[0].images[1];
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const cargarGaleria = () => {
+      setLoading(true);
+      fetchGallerySections().then((sections) => {
+        if (!isMounted) return;
+        setGallerySections(sections);
+        setLoading(false);
+      });
+    };
+
+    cargarGaleria();
+    window.addEventListener("focus", cargarGaleria);
+    window.addEventListener("gallery:changed", cargarGaleria);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("focus", cargarGaleria);
+      window.removeEventListener("gallery:changed", cargarGaleria);
+    };
+  }, []);
+
+  const totalImages = gallerySections.reduce((total, section) => total + section.images.length, 0);
+  const heroImage = gallerySections[0]?.images[1] || gallerySections[0]?.images[0];
   const sectionStartIndexes = useMemo(
     () =>
-      GALLERY_SECTIONS.reduce((indexes, section, index) => {
+      gallerySections.reduce((indexes, section, index) => {
         const previousTotal =
-          index === 0 ? 0 : indexes[index - 1] + GALLERY_SECTIONS[index - 1].images.length;
+          index === 0 ? 0 : indexes[index - 1] + gallerySections[index - 1].images.length;
         return [...indexes, previousTotal];
       }, []),
-    []
+    [gallerySections]
   );
   const galleryImages = useMemo(
     () =>
-      GALLERY_SECTIONS.flatMap((section) =>
+      gallerySections.flatMap((section) =>
         section.images.map((image) => ({
           ...image,
           sectionTitle: section.title,
         }))
       ),
-    []
+    [gallerySections]
   );
 
   return (
@@ -249,12 +275,14 @@ function PaginaGaleria() {
 
       <main>
         <section className="relative mt-[72px] overflow-hidden bg-copy px-6 py-18 text-white sm:px-10 lg:px-16 lg:py-24">
-          <img
-            className="absolute inset-0 h-full w-full object-cover opacity-34"
-            src={heroImage.src}
-            alt=""
-            aria-hidden="true"
-          />
+          {heroImage && (
+            <img
+              className="absolute inset-0 h-full w-full object-cover opacity-34"
+              src={heroImage.src}
+              alt=""
+              aria-hidden="true"
+            />
+          )}
           <div className="absolute inset-0 bg-linear-to-r from-copy via-copy/78 to-copy/30" />
 
           <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
@@ -272,7 +300,7 @@ function PaginaGaleria() {
             </div>
 
             <div className="grid grid-cols-2 gap-2 rounded-lg border border-white/16 bg-white/10 p-2 backdrop-blur-md">
-              {GALLERY_SECTIONS.map((section) => (
+              {gallerySections.map((section) => (
                 <a
                   key={section.id}
                   href={`#${section.id}`}
@@ -294,7 +322,7 @@ function PaginaGaleria() {
           aria-label="Categorías de galería"
         >
           <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto">
-            {GALLERY_SECTIONS.map((section) => (
+            {gallerySections.map((section) => (
               <a
                 key={section.id}
                 href={`#${section.id}`}
@@ -307,7 +335,17 @@ function PaginaGaleria() {
         </nav>
 
         <div className="mx-auto max-w-6xl px-6 sm:px-10 lg:px-0">
-          {GALLERY_SECTIONS.map((section, index) => (
+          {loading && (
+            <p className="py-12 text-center text-sm font-semibold text-muted">Cargando galeria...</p>
+          )}
+
+          {!loading && gallerySections.length === 0 && (
+            <p className="py-12 text-center text-sm font-semibold text-muted">
+              No hay imagenes disponibles en Supabase Storage.
+            </p>
+          )}
+
+          {gallerySections.map((section, index) => (
             <SeccionGaleria
               key={section.id}
               section={section}

@@ -1,5 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
 import CarruselTresD from "./ThreeDCarousel";
 import { FEATURED_IMAGES } from "../data/laGalanaImages";
+import { fetchGallerySections } from "../services/galleryService";
 
 const GALLERY_PAGE_PATH = "/galeria";
 
@@ -42,7 +44,52 @@ const GALLERY_ITEMS = [
   },
 ];
 
+function crearItemsCarrusel(sections) {
+  const images = sections.flatMap((section) =>
+    section.images.map((image) => ({
+      image,
+      section,
+    }))
+  );
+
+  if (!images.length) return GALLERY_ITEMS;
+
+  return images.slice(0, 4).map(({ image, section }, index) => ({
+    id: image.id || image.src || index,
+    title: image.title || section.title,
+    brand: "Casa Rural La Galana",
+    description: section.intro || `Imagenes de ${section.title.toLowerCase()} de la casa rural.`,
+    tags: [section.title, "Galeria"],
+    imageUrl: image.src,
+    link: GALLERY_PAGE_PATH,
+  }));
+}
+
 function Galeria() {
+  const [sections, setSections] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const cargarGaleria = () => {
+      fetchGallerySections().then((nextSections) => {
+        if (isMounted) setSections(nextSections);
+      });
+    };
+
+    cargarGaleria();
+    window.addEventListener("focus", cargarGaleria);
+    window.addEventListener("gallery:changed", cargarGaleria);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("focus", cargarGaleria);
+      window.removeEventListener("gallery:changed", cargarGaleria);
+    };
+  }, []);
+
+  const carouselItems = useMemo(() => (sections === null ? GALLERY_ITEMS : crearItemsCarrusel(sections)), [sections]);
+
   return (
     <section
       className="scroll-mt-24 bg-white px-6 py-16 text-center sm:px-10 lg:px-0 lg:py-14"
@@ -56,7 +103,7 @@ function Galeria() {
       </div>
 
       <CarruselTresD
-        items={GALLERY_ITEMS}
+        items={carouselItems}
         autoRotate
         rotateInterval={4500}
         cardHeight={480}
