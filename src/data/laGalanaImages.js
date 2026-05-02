@@ -1,15 +1,15 @@
 const BASE_PATH = "/images/FOTOS%20GALANA%20JUANJO%20webp";
 
-export const laGalanaImage = (filename) => `${BASE_PATH}/${filename}`;
+export const obtenerImagenLaGalana = (filename) => `${BASE_PATH}/${filename}`;
 
 export const FEATURED_IMAGES = {
-  hero: laGalanaImage("T4Q0890.webp"),
-  login: laGalanaImage("T4Q0930.webp"),
-  reservation: laGalanaImage("T4Q0996.webp"),
-  exterior: laGalanaImage("T4Q0905.webp"),
-  kitchen: laGalanaImage("T4Q0913.webp"),
-  livingRoom: laGalanaImage("T4Q0930.webp"),
-  bedroom: laGalanaImage("T4Q0958.webp"),
+  hero: obtenerImagenLaGalana("T4Q0890.webp"),
+  login: obtenerImagenLaGalana("T4Q0930.webp"),
+  reservation: obtenerImagenLaGalana("T4Q0996.webp"),
+  exterior: obtenerImagenLaGalana("T4Q0905.webp"),
+  kitchen: obtenerImagenLaGalana("T4Q0913.webp"),
+  livingRoom: obtenerImagenLaGalana("T4Q0930.webp"),
+  bedroom: obtenerImagenLaGalana("T4Q0958.webp"),
 };
 
 export const EXTERIOR_IMAGES = [

@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
 import { supabase } from "../supabase/client.js";
 import { FEATURED_IMAGES } from "../data/laGalanaImages.js";
 
-export default function ShowCalendar({
+export default function MostrarCalendario({
   showHeading = true,
   onDateChange = null,
   selectedRange = [null, null],
+  refreshKey = 0,
   children = null,
 }) {
   const [reservas, setReservas] = useState([]);
@@ -25,21 +25,55 @@ export default function ShowCalendar({
     return `${year}-${month}-${day}`;
   };
 
+  const crearFechaDesdeSql = (fechaSql) => {
+    if (!fechaSql) return null;
+    const [year, month, day] = fechaSql.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  const diasReservados = useMemo(() => {
+    const fechas = new Set();
+
+    reservas.forEach((reserva) => {
+      const fechaEntrada = crearFechaDesdeSql(reserva.fecha_entrada);
+      const fechaSalida = crearFechaDesdeSql(reserva.fecha_salida);
+
+      if (!fechaEntrada || !fechaSalida) return;
+
+      const fechaActual = new Date(fechaEntrada);
+
+      while (fechaActual <= fechaSalida) {
+        fechas.add(formatearFecha(fechaActual));
+        fechaActual.setDate(fechaActual.getDate() + 1);
+      }
+    });
+
+    return fechas;
+  }, [reservas]);
+
   useEffect(() => {
     if (!supabase) {
       console.log("No hay conexion a la base de datos" + supabase);
       return;
     }
 
-    const fetchReservas = async () => {
-      const primerDia = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1);
-      const ultimoDia = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0);
+    const obtenerReservas = async () => {
+      const primerDia = new Date(
+        mesActual.getFullYear(),
+        mesActual.getMonth(),
+        1,
+      );
+      const ultimoDia = new Date(
+        mesActual.getFullYear(),
+        mesActual.getMonth() + 1,
+        0,
+      );
 
       const { data, error } = await supabase
         .from("reservas")
-        .select("*")
-        .lte("fecha_inicio", formatearFecha(ultimoDia))
-        .gte("fecha_fin", formatearFecha(primerDia));
+        .select("fecha_entrada, fecha_salida")
+        .lte("fecha_entrada", formatearFecha(ultimoDia))
+        .gte("fecha_salida", formatearFecha(primerDia));
 
       if (error) {
         console.error("Error al obtener reservas:", error);
@@ -48,19 +82,16 @@ export default function ShowCalendar({
       }
     };
 
-    fetchReservas();
-  }, [mesActual]);
+    obtenerReservas();
+  }, [mesActual, refreshKey]);
 
-  const getEstado = (date) => {
-    const fechaActual = formatearFecha(date);
-
-    const reserva = reservas.find((r) => fechaActual >= r.fecha_inicio && fechaActual <= r.fecha_fin);
-
-    if (!reserva) return "disponible";
-    return reserva.estado.toLowerCase();
+  const obtenerEstado = (date) => {
+    return diasReservados.has(formatearFecha(date)) ? "confirmada" : "disponible";
   };
 
-  const isDateInRange = (date) => {
+  const fechaEstaReservada = (date) => diasReservados.has(formatearFecha(date));
+
+  const estaFechaEnRango = (date) => {
     if (!selectedRange[0] || !selectedRange[1]) return false;
 
     const start = selectedRange[0];
@@ -74,7 +105,7 @@ export default function ShowCalendar({
     return current >= start && current <= end;
   };
 
-  const handleCalendarChange = (value) => {
+  const manejarCambioCalendario = (value) => {
     if (onDateChange) {
       onDateChange(value);
     }
@@ -85,7 +116,7 @@ export default function ShowCalendar({
   return (
     <div
       className={`calendar-shell flex w-full flex-col ${
-        showHeading ? "max-w-3xl" : "calendar-shell--reservation max-w-[1320px]"
+        showHeading ? "max-w-3xl" : "calendar-shell--reservation max-w-[1640px]"
       }`}
     >
       {showHeading ? (
@@ -93,39 +124,51 @@ export default function ShowCalendar({
           <p className="text-xs font-semibold uppercase tracking-[0.32em] text-accent">
             Calendario de estancias
           </p>
-          <h2 className="font-display text-3xl text-brand sm:text-4xl">Disponibilidad</h2>
+          <h2 className="font-display text-3xl text-brand sm:text-4xl">
+            Disponibilidad
+          </h2>
           <p className="mx-auto max-w-2xl text-sm text-muted sm:text-base">
-            Consulta de un vistazo los di­as disponibles y selecciona tu estancia ideal.
+            Consulta de un vistazo los di­as disponibles y selecciona tu
+            estancia ideal.
           </p>
         </div>
       ) : null}
 
-      <div className="calendar-shell__frame w-full overflow-hidden rounded-[2rem] border border-white/18 bg-linear-to-br from-white/14 via-[#e6d2aa]/18 to-[#b89458]/20 p-4 shadow-[0_18px_50px_rgba(79,66,36,0.14)] backdrop-blur-[10px] sm:p-5 lg:p-6 min-h-screen">
+      <div className="calendar-shell__frame w-full overflow-hidden rounded-[2rem] border border-white/18 bg-linear-to-br from-white/14 via-[#e6d2aa]/18 to-[#b89458]/20 p-4 shadow-[0_18px_50px_rgba(79,66,36,0.14)] backdrop-blur-[10px] sm:p-5 lg:p-6">
         <div className="mb-4 flex flex-col gap-3 rounded-[1.6rem] border border-white/14 bg-white/10 px-4 py-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-dark">
               Vista actual
             </p>
-            <p className="mt-1 font-display text-2xl text-copy capitalize">{monthLabel}</p>
+            <p className="mt-1 font-display text-2xl text-copy capitalize">
+              {monthLabel}
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs font-semibold sm:justify-end">
-            <span className="calendar-legend calendar-legend--available">Disponible</span>
-            <span className="calendar-legend calendar-legend--pending">Pendiente</span>
-            <span className="calendar-legend calendar-legend--confirmed">Reservado</span>
+            <span className="calendar-legend calendar-legend--available">
+              Disponible
+            </span>
+            <span className="calendar-legend calendar-legend--confirmed">
+              Reservado
+            </span>
           </div>
         </div>
 
         <div
           className={
             children
-              ? "grid gap-6 lg:items-start lg:grid-cols-[minmax(560px,1.38fr)_minmax(360px,0.82fr)] xl:grid-cols-[minmax(640px,1.5fr)_minmax(380px,0.8fr)]"
+              ? "grid gap-6 lg:items-start lg:grid-cols-[minmax(580px,1.32fr)_minmax(410px,0.9fr)] xl:grid-cols-[minmax(680px,1.45fr)_minmax(450px,0.92fr)]"
               : ""
           }
         >
           <div className={children ? "flex flex-col gap-4" : ""}>
             <Calendar
-              className={showHeading ? "calendar-shell__calendar" : "calendar-shell__calendar calendar-shell__calendar--reservation"}
+              className={
+                showHeading
+                  ? "calendar-shell__calendar"
+                  : "calendar-shell__calendar calendar-shell__calendar--reservation"
+              }
               locale="es-ES"
               formatShortWeekday={(_, date) =>
                 date
@@ -141,21 +184,29 @@ export default function ShowCalendar({
               }
               next2Label={null}
               prev2Label={null}
-              onActiveStartDateChange={({ activeStartDate }) => setMesActual(activeStartDate)}
-              onChange={handleCalendarChange}
+              onActiveStartDateChange={({ activeStartDate }) =>
+                setMesActual(activeStartDate)
+              }
+              onChange={manejarCambioCalendario}
               value={selectedRange}
               selectRange={true}
-              tileClassName={({ date }) => {
-                let classes = getEstado(date);
-                if (isDateInRange(date)) {
+              tileClassName={({ date, view }) => {
+                if (view !== "month") return null;
+                let classes = obtenerEstado(date);
+                if (estaFechaEnRango(date)) {
                   classes += " in-range";
                 }
                 return classes;
               }}
+              tileContent={({ date, view }) =>
+                view === "month" && fechaEstaReservada(date) ? (
+                  <span className="calendar-reserved-bg" aria-hidden="true" />
+                ) : null
+              }
             />
 
             {!showHeading ? (
-              <div className="relative h-[200px] overflow-hidden rounded-[1.9rem] border border-white/16 shadow-[0_18px_45px_rgba(79,66,36,0.16)] sm:h-[250px] lg:h-[200px]">
+              <div className="relative h-[200px] overflow-hidden rounded-[1.9rem] border border-white/16 shadow-[0_18px_45px_rgba(79,66,36,0.16)] sm:h-[250px] lg:h-[400px]">
                 <img
                   src={reservationImage}
                   alt="Interior acogedor de la casa rural"
@@ -177,7 +228,9 @@ export default function ShowCalendar({
             ) : null}
           </div>
 
-          {children ? <div className="self-start lg:pt-2">{children}</div> : null}
+          {children ? (
+            <div className="self-start lg:pt-2">{children}</div>
+          ) : null}
         </div>
       </div>
     </div>

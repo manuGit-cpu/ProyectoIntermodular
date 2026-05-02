@@ -1,4 +1,4 @@
-export default function Footer() {
+export default function PiePagina() {
   return (
     <footer
       className="scroll-mt-24 bg-[#f3f1ea] px-6 py-16 text-copy sm:px-10"

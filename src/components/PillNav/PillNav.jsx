@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
-const PillNav = ({
+const NavegacionPildora = ({
   logo,
   logoAlt = "Logo",
   logoHref,
@@ -36,7 +36,7 @@ const PillNav = ({
   const userMenuRef = useRef(null);
 
   useEffect(() => {
-    const layout = () => {
+    const calcularDiseno = () => {
       circleRefs.current.forEach((circle) => {
         if (!circle?.parentElement) return;
 
@@ -85,13 +85,13 @@ const PillNav = ({
       });
     };
 
-    layout();
+    calcularDiseno();
 
-    const onResize = () => layout();
-    window.addEventListener("resize", onResize);
+    const alRedimensionar = () => calcularDiseno();
+    window.addEventListener("resize", alRedimensionar);
 
     if (document.fonts?.ready) {
-      document.fonts.ready.then(layout).catch(() => {});
+      document.fonts.ready.then(calcularDiseno).catch(() => {});
     }
 
     const menu = mobileMenuRef.current;
@@ -122,22 +122,22 @@ const PillNav = ({
       }
     }
 
-    return () => window.removeEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", alRedimensionar);
   }, [items, ease, initialLoadAnimation]);
 
   useEffect(() => {
-    const handleDocumentClick = (event) => {
+    const manejarClickDocumento = (event) => {
       if (!userMenuRef.current?.contains(event.target)) {
         setIsUserMenuOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleDocumentClick);
+    document.addEventListener("mousedown", manejarClickDocumento);
 
-    return () => document.removeEventListener("mousedown", handleDocumentClick);
+    return () => document.removeEventListener("mousedown", manejarClickDocumento);
   }, []);
 
-  const handleEnter = (index) => {
+  const manejarEntrada = (index) => {
     const tl = tlRefs.current[index];
     if (!tl) return;
     activeTweenRefs.current[index]?.kill();
@@ -148,7 +148,7 @@ const PillNav = ({
     });
   };
 
-  const handleLeave = (index) => {
+  const manejarSalida = (index) => {
     const tl = tlRefs.current[index];
     if (!tl) return;
     activeTweenRefs.current[index]?.kill();
@@ -159,7 +159,7 @@ const PillNav = ({
     });
   };
 
-  const handleLogoEnter = () => {
+  const manejarEntradaLogo = () => {
     const img = logoImgRef.current;
     if (!img) return;
     logoTweenRef.current?.kill();
@@ -172,7 +172,7 @@ const PillNav = ({
     });
   };
 
-  const toggleMobileMenu = () => {
+  const alternarMenuMovil = () => {
     const nextState = !isMobileMenuOpen;
     setIsMobileMenuOpen(nextState);
 
@@ -254,7 +254,7 @@ const PillNav = ({
           className="inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--base)] p-2"
           href={homeHref}
           aria-label="Inicio"
-          onMouseEnter={handleLogoEnter}
+          onMouseEnter={manejarEntradaLogo}
           ref={(el) => {
             logoRef.current = el;
           }}
@@ -289,8 +289,8 @@ const PillNav = ({
                       : ""
                   }`}
                   aria-label={item.ariaLabel || item.label}
-                  onMouseEnter={() => handleEnter(index)}
-                  onMouseLeave={() => handleLeave(index)}
+                  onMouseEnter={() => manejarEntrada(index)}
+                  onMouseLeave={() => manejarSalida(index)}
                 >
                   <span
                     className={`hover-circle absolute left-1/2 bottom-0 z-[1] block rounded-full ${
@@ -388,7 +388,7 @@ const PillNav = ({
         <button
           className="relative flex h-[50px] w-[50px] flex-col items-center justify-center gap-1 rounded-full border-0 bg-[var(--base)] p-0 md:hidden"
           type="button"
-          onClick={toggleMobileMenu}
+          onClick={alternarMenuMovil}
           aria-label="Abrir o cerrar menu"
           aria-expanded={isMobileMenuOpen}
           ref={hamburgerRef}
@@ -427,4 +427,4 @@ const PillNav = ({
   );
 };
 
-export default PillNav;
+export default NavegacionPildora;

@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 
-function useIsMobile(breakpoint = 768) {
+function useEsMovil(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
+    const actualizar = () => setIsMobile(mq.matches);
+    actualizar();
+    mq.addEventListener("change", actualizar);
+    return () => mq.removeEventListener("change", actualizar);
   }, [breakpoint]);
 
   return isMobile;
 }
 
-function IconChevronLeft({ className }) {
+function IconoChevronIzquierdo({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <path d="M15 18l-6-6 6-6" />
@@ -22,7 +22,7 @@ function IconChevronLeft({ className }) {
   );
 }
 
-function IconChevronRight({ className }) {
+function IconoChevronDerecho({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <path d="M9 18l6-6-6-6" />
@@ -30,7 +30,7 @@ function IconChevronRight({ className }) {
   );
 }
 
-function IconArrowRight({ className }) {
+function IconoFlechaDerecha({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
       <path d="M5 12h14M13 6l6 6-6 6" />
@@ -38,7 +38,7 @@ function IconArrowRight({ className }) {
   );
 }
 
-export default function ThreeDCarousel({
+export default function CarruselTresD({
   items,
   autoRotate = true,
   rotateInterval = 4000,
@@ -52,7 +52,7 @@ export default function ThreeDCarousel({
   const [isHovering, setIsHovering] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  const isMobile = useIsMobile();
+  const isMobile = useEsMovil();
   const minSwipeDistance = 50;
 
   useEffect(() => {
@@ -76,18 +76,18 @@ export default function ThreeDCarousel({
     return () => observer.disconnect();
   }, []);
 
-  const onTouchStart = (e) => {
+  const manejarInicioToque = (e) => {
     if (!isMobileSwipe) return;
     setTouchStart(e.targetTouches[0].clientX);
     setTouchEnd(null);
   };
 
-  const onTouchMove = (e) => {
+  const manejarMovimientoToque = (e) => {
     if (!isMobileSwipe) return;
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
-  const onTouchEnd = () => {
+  const manejarFinToque = () => {
     if (!isMobileSwipe || touchStart == null || touchEnd == null) return;
 
     const distance = touchStart - touchEnd;
@@ -102,7 +102,7 @@ export default function ThreeDCarousel({
     setTouchEnd(null);
   };
 
-  const slideClass = (index) => {
+  const obtenerClaseDiapositiva = (index) => {
     const total = items.length;
     const baseClass =
       "absolute top-1/2 left-1/2 w-full max-w-[28rem] -translate-x-1/2 -translate-y-1/2 opacity-0 transition duration-500 ease-out";
@@ -122,7 +122,7 @@ export default function ThreeDCarousel({
     return `${baseClass} pointer-events-none z-0 scale-90 opacity-0`;
   };
 
-  const handleLinkClick = (event, href) => {
+  const manejarClickEnlace = (event, href) => {
     if (!href?.startsWith("/")) return;
 
     event.preventDefault();
@@ -139,14 +139,14 @@ export default function ThreeDCarousel({
           style={{ "--carousel-card-height": `${cardHeight}px` }}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
+          onTouchStart={manejarInicioToque}
+          onTouchMove={manejarMovimientoToque}
+          onTouchEnd={manejarFinToque}
           ref={carouselRef}
         >
           <div className="absolute inset-0 flex items-center justify-center [perspective:1200px]">
             {items.map((item, index) => (
-              <div key={item.id} className={slideClass(index)}>
+              <div key={item.id} className={obtenerClaseDiapositiva(index)}>
                 <article className="flex min-h-[var(--carousel-card-height)] flex-col overflow-hidden rounded-xl border border-black/8 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.1)] transition hover:shadow-[0_14px_48px_rgba(0,0,0,0.14)]">
                   <div
                     className="relative flex h-48 items-center justify-center overflow-hidden bg-black bg-cover bg-center bg-no-repeat p-6"
@@ -180,10 +180,10 @@ export default function ThreeDCarousel({
                       <a
                         href={item.link}
                         className="group relative inline-flex items-center gap-1.5 border-b-2 border-transparent pb-0.5 text-sm text-muted transition hover:border-brand hover:text-copy"
-                        onClick={(event) => handleLinkClick(event, item.link)}
+                        onClick={(event) => manejarClickEnlace(event, item.link)}
                       >
                         <span>{linkLabel}</span>
-                        <IconArrowRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-1" />
+                        <IconoFlechaDerecha className="h-4 w-4 shrink-0 transition group-hover:translate-x-1" />
                       </a>
                     </div>
                   </div>
@@ -200,7 +200,7 @@ export default function ThreeDCarousel({
                 onClick={() => setActive((prev) => (prev - 1 + items.length) % items.length)}
                 aria-label="Anterior"
               >
-                <IconChevronLeft className="h-5 w-5" />
+                <IconoChevronIzquierdo className="h-5 w-5" />
               </button>
 
               <button
@@ -209,7 +209,7 @@ export default function ThreeDCarousel({
                 onClick={() => setActive((prev) => (prev + 1) % items.length)}
                 aria-label="Siguiente"
               >
-                <IconChevronRight className="h-5 w-5" />
+                <IconoChevronDerecho className="h-5 w-5" />
               </button>
             </>
           )}
