@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
 import { supabase } from "../supabase/client.js";
 import { FEATURED_IMAGES } from "../data/laGalanaImages.js";
 
@@ -8,6 +7,7 @@ export default function MostrarCalendario({
   showHeading = true,
   onDateChange = null,
   selectedRange = [null, null],
+  refreshKey = 0,
   children = null,
 }) {
   const [reservas, setReservas] = useState([]);
@@ -24,6 +24,32 @@ export default function MostrarCalendario({
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
+
+  const crearFechaDesdeSql = (fechaSql) => {
+    if (!fechaSql) return null;
+    const [year, month, day] = fechaSql.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  const diasReservados = useMemo(() => {
+    const fechas = new Set();
+
+    reservas.forEach((reserva) => {
+      const fechaEntrada = crearFechaDesdeSql(reserva.fecha_entrada);
+      const fechaSalida = crearFechaDesdeSql(reserva.fecha_salida);
+
+      if (!fechaEntrada || !fechaSalida) return;
+
+      const fechaActual = new Date(fechaEntrada);
+
+      while (fechaActual <= fechaSalida) {
+        fechas.add(formatearFecha(fechaActual));
+        fechaActual.setDate(fechaActual.getDate() + 1);
+      }
+    });
+
+    return fechas;
+  }, [reservas]);
 
   useEffect(() => {
     if (!supabase) {
@@ -57,17 +83,13 @@ export default function MostrarCalendario({
     };
 
     obtenerReservas();
-  }, [mesActual]);
+  }, [mesActual, refreshKey]);
 
   const obtenerEstado = (date) => {
-    const fechaActual = formatearFecha(date);
-
-    const reserva = reservas.find(
-      (r) => fechaActual >= r.fecha_entrada && fechaActual <= r.fecha_salida,
-    );
-
-    return reserva ? "confirmada" : "disponible";
+    return diasReservados.has(formatearFecha(date)) ? "confirmada" : "disponible";
   };
+
+  const fechaEstaReservada = (date) => diasReservados.has(formatearFecha(date));
 
   const estaFechaEnRango = (date) => {
     if (!selectedRange[0] || !selectedRange[1]) return false;
@@ -127,9 +149,6 @@ export default function MostrarCalendario({
             <span className="calendar-legend calendar-legend--available">
               Disponible
             </span>
-            <span className="calendar-legend calendar-legend--pending">
-              Pendiente
-            </span>
             <span className="calendar-legend calendar-legend--confirmed">
               Reservado
             </span>
@@ -171,13 +190,19 @@ export default function MostrarCalendario({
               onChange={manejarCambioCalendario}
               value={selectedRange}
               selectRange={true}
-              tileClassName={({ date }) => {
+              tileClassName={({ date, view }) => {
+                if (view !== "month") return null;
                 let classes = obtenerEstado(date);
                 if (estaFechaEnRango(date)) {
                   classes += " in-range";
                 }
                 return classes;
               }}
+              tileContent={({ date, view }) =>
+                view === "month" && fechaEstaReservada(date) ? (
+                  <span className="calendar-reserved-bg" aria-hidden="true" />
+                ) : null
+              }
             />
 
             {!showHeading ? (

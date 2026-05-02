@@ -17,6 +17,7 @@ function Reserva() {
   const [modalExtrasAbierto, setModalExtrasAbierto] = useState(false);
   const [cargandoExtras, setCargandoExtras] = useState(false);
   const [guardandoReserva, setGuardandoReserva] = useState(false);
+  const [recargaCalendario, setRecargaCalendario] = useState(0);
 
   useEffect(() => {
     const obtenerExtras = async () => {
@@ -329,6 +330,7 @@ function Reserva() {
       });
       setSelectedDates([null, null]);
       setExtrasSeleccionados([]);
+      setRecargaCalendario((valor) => valor + 1);
     } catch (error) {
       console.error("Error al guardar la reserva:", error);
       mostrarAlertaApp({
@@ -370,6 +372,7 @@ function Reserva() {
           showHeading={false}
           onDateChange={manejarCambioCalendario}
           selectedRange={selectedDates}
+          refreshKey={recargaCalendario}
         >
           <div className="flex h-full flex-col gap-5">
             <div className="rounded-[1.6rem] border border-white/14 bg-white/10 px-5 py-5 text-left text-white backdrop-blur-md">
