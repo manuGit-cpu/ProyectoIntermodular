@@ -18,12 +18,15 @@ const NavegacionPildora = ({
   pillColor = "#060010",
   hoveredPillTextColor = "#060010",
   pillTextColor,
+  mode = "site",
   onMobileMenuClick,
   initialLoadAnimation = true,
 }) => {
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false);
+  const [isMobileConfigOpen, setIsMobileConfigOpen] = useState(false);
   const circleRefs = useRef([]);
   const tlRefs = useRef([]);
   const activeTweenRefs = useRef([]);
@@ -34,6 +37,7 @@ const NavegacionPildora = ({
   const navItemsRef = useRef(null);
   const logoRef = useRef(null);
   const userMenuRef = useRef(null);
+  const configMenuRef = useRef(null);
 
   useEffect(() => {
     const calcularDiseno = () => {
@@ -118,6 +122,9 @@ const NavegacionPildora = ({
           width: "auto",
           duration: 0.6,
           ease,
+          onComplete: () => {
+            gsap.set(navItems, { overflow: "visible" });
+          },
         });
       }
     }
@@ -129,6 +136,10 @@ const NavegacionPildora = ({
     const manejarClickDocumento = (event) => {
       if (!userMenuRef.current?.contains(event.target)) {
         setIsUserMenuOpen(false);
+      }
+
+      if (!configMenuRef.current?.contains(event.target)) {
+        setIsConfigMenuOpen(false);
       }
     };
 
@@ -172,9 +183,27 @@ const NavegacionPildora = ({
     });
   };
 
+  const esItemActivo = (item) => {
+    if (activeHref === item.href) return true;
+    if (item.label === "Configuracion" && window.location.pathname.startsWith("/dashboard/configuracion")) return true;
+    return item.children?.some((child) => child.href === activeHref) || false;
+  };
+
+  const alternarMenuConfiguracion = () => {
+    setIsConfigMenuOpen((open) => !open);
+    setIsUserMenuOpen(false);
+  };
+
+  const cerrarMenuConfiguracion = () => {
+    setIsConfigMenuOpen(false);
+    setIsMobileConfigOpen(false);
+  };
+
   const alternarMenuMovil = () => {
     const nextState = !isMobileMenuOpen;
     setIsMobileMenuOpen(nextState);
+    setIsMobileConfigOpen(false);
+    setIsConfigMenuOpen(false);
 
     const hamburger = hamburgerRef.current;
     const menu = mobileMenuRef.current;
@@ -241,7 +270,7 @@ const NavegacionPildora = ({
         ? "Empleado"
         : "Cliente";
   const primaryUserHref =
-    userRole === "admin" || userRole === "administrador" ? "/dashboard" : "/#reserva";
+    userRole === "admin" || userRole === "administrador" ? "/dashboard/resumen" : "/#reserva";
 
   return (
     <div className="pointer-events-auto relative w-full md:w-auto">
@@ -272,51 +301,141 @@ const NavegacionPildora = ({
           ref={navItemsRef}
         >
           <ul className="m-0 flex h-full list-none items-stretch gap-[10px] p-2" role="menubar">
-            {items.map((item, index) => (
-              <li key={`pill-${index}-${item.label}`} role="none" className="flex h-full">
-                <a
-                  role="menuitem"
-                  href={item.href}
-                  target={item.target}
-                  rel={item.rel}
-                  className={`group relative inline-flex h-full items-center justify-center overflow-hidden rounded-full px-5 text-[13px] font-semibold uppercase leading-none tracking-[0.2px] whitespace-nowrap no-underline ${
-                    item.variant
-                      ? "bg-accent text-[#f4f6ef]"
-                      : "bg-[var(--pill-bg)] text-[var(--pill-text)]"
-                  } ${
-                    activeHref === item.href
-                      ? "is-active after:absolute after:-bottom-1.5 after:left-1/2 after:z-[4] after:h-3 after:w-3 after:-translate-x-1/2 after:rounded-full after:bg-brand"
-                      : ""
-                  }`}
-                  aria-label={item.ariaLabel || item.label}
-                  onMouseEnter={() => manejarEntrada(index)}
-                  onMouseLeave={() => manejarSalida(index)}
-                >
-                  <span
-                    className={`hover-circle absolute left-1/2 bottom-0 z-[1] block rounded-full ${
-                      item.variant ? "bg-brand" : "bg-[var(--base)]"
-                    }`}
-                    aria-hidden="true"
-                    ref={(el) => {
-                      circleRefs.current[index] = el;
-                    }}
-                  />
-                  <span className="relative z-[2] inline-block leading-none">
-                    <span className="pill-label relative z-[2] inline-block leading-none">
-                      {item.label}
-                    </span>
-                    <span
-                      className={`pill-label-hover absolute top-0 left-0 z-[3] inline-block ${
-                        item.variant ? "text-white" : "text-copy"
-                      }`}
-                      aria-hidden="true"
+            {items.map((item, index) => {
+              const hasChildren = Boolean(item.children?.length);
+              const isActive = esItemActivo(item);
+
+              return (
+                <li key={`pill-${index}-${item.label}`} role="none" className="relative flex h-full">
+                  {hasChildren ? (
+                    <div
+                      className="group relative flex h-full"
+                      ref={item.label === "Configuracion" ? configMenuRef : undefined}
+                      onMouseEnter={item.label === "Configuracion" ? () => setIsConfigMenuOpen(true) : undefined}
+                      onMouseLeave={item.label === "Configuracion" ? () => setIsConfigMenuOpen(false) : undefined}
                     >
-                      {item.label}
-                    </span>
-                  </span>
-                </a>
-              </li>
-            ))}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        aria-haspopup="menu"
+                        aria-expanded={isConfigMenuOpen}
+                        className={`group relative inline-flex h-full items-center justify-center overflow-hidden rounded-full px-5 text-[13px] font-semibold uppercase leading-none tracking-[0.2px] whitespace-nowrap no-underline ${
+                          item.variant
+                            ? "bg-accent text-[#f4f6ef]"
+                            : "bg-[var(--pill-bg)] text-[var(--pill-text)]"
+                        } ${
+                          isActive
+                            ? "is-active after:absolute after:-bottom-1.5 after:left-1/2 after:z-[4] after:h-3 after:w-3 after:-translate-x-1/2 after:rounded-full after:bg-brand"
+                            : ""
+                        }`}
+                        aria-label={item.ariaLabel || item.label}
+                        onMouseEnter={() => manejarEntrada(index)}
+                        onMouseLeave={() => manejarSalida(index)}
+                        onFocus={() => setIsConfigMenuOpen(true)}
+                        onBlur={(event) => {
+                          if (!event.currentTarget.parentElement?.contains(event.relatedTarget)) {
+                            setIsConfigMenuOpen(false);
+                          }
+                        }}
+                      >
+                        <span
+                          className={`hover-circle absolute left-1/2 bottom-0 z-[1] block rounded-full ${
+                            item.variant ? "bg-brand" : "bg-[var(--base)]"
+                          }`}
+                          aria-hidden="true"
+                          ref={(el) => {
+                            circleRefs.current[index] = el;
+                          }}
+                        />
+                        <span className="relative z-[2] inline-flex items-center gap-2 leading-none">
+                          <span className="pill-label relative z-[2] inline-block leading-none">
+                            {item.label}
+                          </span>
+                          <span aria-hidden="true" className="text-[10px] leading-none">
+                            ▾
+                          </span>
+                          <span
+                            className={`pill-label-hover absolute top-0 left-0 z-[3] inline-block ${
+                              item.variant ? "text-white" : "text-copy"
+                            }`}
+                            aria-hidden="true"
+                          >
+                            {item.label}
+                          </span>
+                        </span>
+                      </button>
+
+                      <div
+                        className={`absolute top-[58px] left-0 z-[999] min-w-[240px] rounded-[22px] border border-brand/14 bg-white p-2 text-copy shadow-[0_18px_46px_rgba(44,44,44,0.18)] transition duration-150 ${
+                          isConfigMenuOpen
+                            ? "visible translate-y-0 opacity-100"
+                            : "invisible -translate-y-2 opacity-0"
+                        } group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100`}
+                      >
+                        {item.children.map((child) => (
+                          <a
+                            key={child.href}
+                            role="menuitem"
+                            className={`block rounded-[16px] px-4 py-3 text-sm font-semibold no-underline transition ${
+                              activeHref === child.href
+                                ? "bg-brand/12 text-brand-dark"
+                                : "text-copy hover:bg-brand/8 hover:text-brand-dark"
+                            }`}
+                            href={child.href}
+                            aria-label={child.ariaLabel || child.label}
+                            onClick={cerrarMenuConfiguracion}
+                          >
+                            {child.label}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <a
+                      role="menuitem"
+                      href={item.href}
+                      target={item.target}
+                      rel={item.rel}
+                      className={`group relative inline-flex h-full items-center justify-center overflow-hidden rounded-full px-5 text-[13px] font-semibold uppercase leading-none tracking-[0.2px] whitespace-nowrap no-underline ${
+                        item.variant
+                          ? "bg-accent text-[#f4f6ef]"
+                          : "bg-[var(--pill-bg)] text-[var(--pill-text)]"
+                      } ${
+                        isActive
+                          ? "is-active after:absolute after:-bottom-1.5 after:left-1/2 after:z-[4] after:h-3 after:w-3 after:-translate-x-1/2 after:rounded-full after:bg-brand"
+                          : ""
+                      }`}
+                      aria-label={item.ariaLabel || item.label}
+                      onMouseEnter={() => manejarEntrada(index)}
+                      onMouseLeave={() => manejarSalida(index)}
+                    >
+                      <span
+                        className={`hover-circle absolute left-1/2 bottom-0 z-[1] block rounded-full ${
+                          item.variant ? "bg-brand" : "bg-[var(--base)]"
+                        }`}
+                        aria-hidden="true"
+                        ref={(el) => {
+                          circleRefs.current[index] = el;
+                        }}
+                      />
+                      <span className="relative z-[2] inline-block leading-none">
+                        <span className="pill-label relative z-[2] inline-block leading-none">
+                          {item.label}
+                        </span>
+                        <span
+                          className={`pill-label-hover absolute top-0 left-0 z-[3] inline-block ${
+                            item.variant ? "text-white" : "text-copy"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          {item.label}
+                        </span>
+                      </span>
+                    </a>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
@@ -404,23 +523,72 @@ const NavegacionPildora = ({
         style={cssVars}
       >
         <ul className="m-0 flex list-none flex-col gap-[3px] p-[3px]">
-          {items.map((item, index) => (
-            <li key={`pill-mobile-${index}-${item.label}`}>
-              <a
-                href={item.href}
-                target={item.target}
-                rel={item.rel}
-                className={`block rounded-[50px] px-4 py-3 text-base font-medium no-underline transition ${
-                  item.variant
-                    ? "bg-accent text-[#f4f6ef] hover:bg-accent-dark hover:text-white"
-                    : "bg-[var(--pill-bg)] text-[var(--pill-text)] hover:bg-[var(--base)] hover:text-[var(--hover-text)]"
-                } ${activeHref === item.href ? "ring-2 ring-brand/30" : ""}`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
+          {items.map((item, index) => {
+            const hasChildren = Boolean(item.children?.length);
+            const isActive = esItemActivo(item);
+
+            return (
+              <li key={`pill-mobile-${index}-${item.label}`}>
+                {hasChildren ? (
+                  <div className="grid gap-[3px]">
+                    <button
+                      type="button"
+                      className={`flex w-full items-center justify-between rounded-[50px] px-4 py-3 text-base font-medium no-underline transition ${
+                        item.variant
+                          ? "bg-accent text-[#f4f6ef] hover:bg-accent-dark hover:text-white"
+                          : "bg-[var(--pill-bg)] text-[var(--pill-text)] hover:bg-[var(--base)] hover:text-[var(--hover-text)]"
+                      } ${isActive ? "ring-2 ring-brand/30" : ""}`}
+                      onClick={() => setIsMobileConfigOpen((open) => !open)}
+                    >
+                      <span>{item.label}</span>
+                      <span aria-hidden="true" className="text-xs leading-none">
+                        {isMobileConfigOpen ? "▴" : "▾"}
+                      </span>
+                    </button>
+
+                    {isMobileConfigOpen && (
+                      <div className="grid gap-[3px] pl-3">
+                        {item.children.map((child) => (
+                          <a
+                            key={child.href}
+                            href={child.href}
+                            className={`rounded-[42px] px-4 py-3 text-sm font-semibold no-underline transition ${
+                              activeHref === child.href
+                                ? "bg-brand/12 text-brand-dark"
+                                : "bg-[var(--base)] text-[var(--pill-text)] hover:bg-[var(--pill-bg)] hover:text-[var(--hover-text)]"
+                            }`}
+                            onClick={() => {
+                              setIsMobileMenuOpen(false);
+                              setIsMobileConfigOpen(false);
+                            }}
+                          >
+                            {child.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <a
+                    href={item.href}
+                    target={item.target}
+                    rel={item.rel}
+                    className={`block rounded-[50px] px-4 py-3 text-base font-medium no-underline transition ${
+                      item.variant
+                        ? "bg-accent text-[#f4f6ef] hover:bg-accent-dark hover:text-white"
+                        : "bg-[var(--pill-bg)] text-[var(--pill-text)] hover:bg-[var(--base)] hover:text-[var(--hover-text)]"
+                    } ${isActive ? "ring-2 ring-brand/30" : ""}`}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsMobileConfigOpen(false);
+                    }}
+                  >
+                    {item.label}
+                  </a>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>

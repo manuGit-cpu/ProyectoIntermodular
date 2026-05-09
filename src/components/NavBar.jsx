@@ -6,8 +6,7 @@ import { mostrarAlertaApp } from "../utils/appAlert";
 const NAV_ITEMS = [
   { label: "Reserva", href: "/#reserva", ariaLabel: "Ir a reservas" },
   { label: "Inicio", href: "/#hero", ariaLabel: "Ir al inicio", variant: "accent" },
-  { label: "Galería", href: "/galeria", ariaLabel: "Ir a la galería", variant: "accent" },
-  { label: "Info", href: "/#info", ariaLabel: "Ir a información", variant: "accent" },
+  { label: "Galeria", href: "/galeria", ariaLabel: "Ir a la galeria", variant: "accent" },
   {
     label: "Como llegar",
     href: "https://maps.app.goo.gl/5abzXP6wxSDkLpgN7",
@@ -15,7 +14,7 @@ const NAV_ITEMS = [
     target: "_blank",
     rel: "noreferrer",
   },
-  { label: "Llamar", href: "tel:+34600000000", ariaLabel: "Llamar por teléfono" },
+  { label: "Llamar", href: "tel:+34600000000", ariaLabel: "Llamar por telefono" },
   {
     label: "WhatsApp",
     target: "_blank",
@@ -24,9 +23,30 @@ const NAV_ITEMS = [
   },
 ];
 
+const DASHBOARD_NAV_ITEMS = [
+  { label: "Resumen", href: "/dashboard/resumen", ariaLabel: "Ir al resumen del dashboard" },
+  { label: "Reservas", href: "/dashboard/reservas", ariaLabel: "Ir a reservas" },
+  { label: "Galeria", href: "/dashboard/galeria", ariaLabel: "Ir a la galeria" },
+  {
+    label: "Configuracion",
+    ariaLabel: "Abrir configuracion del dashboard",
+    children: [
+      { label: "Temporadas y precios", href: "/dashboard/configuracion#temporadas-precios", ariaLabel: "Ir a temporadas y precios" },
+      { label: "Servicios extra", href: "/dashboard/configuracion#servicios-extra", ariaLabel: "Ir a servicios extra" },
+      { label: "Gestion de usuarios", href: "/dashboard/configuracion#gestion-usuarios", ariaLabel: "Ir a gestion de usuarios" },
+    ],
+  },
+];
+
 function obtenerHrefActivo() {
   if (typeof window === "undefined") return "";
   if (window.location.pathname === "/login") return "/login";
+  if (window.location.pathname === "/dashboard") {
+    return "/dashboard/resumen";
+  }
+  if (window.location.pathname.startsWith("/dashboard")) {
+    return `${window.location.pathname}${window.location.hash || ""}`;
+  }
   return window.location.pathname === "/galeria" ? "/galeria" : `/${window.location.hash}`;
 }
 
@@ -34,6 +54,8 @@ function BarraNavegacion() {
   const [activeHref, setActiveHref] = useState(obtenerHrefActivo);
   const [sessionUser, setSessionUser] = useState(null);
   const [userRole, setUserRole] = useState("cliente");
+  const isDashboard = typeof window !== "undefined" && window.location.pathname.startsWith("/dashboard");
+  const navItems = isDashboard ? DASHBOARD_NAV_ITEMS : NAV_ITEMS;
 
   useEffect(() => {
     const manejarCambioRuta = () => setActiveHref(obtenerHrefActivo());
@@ -68,7 +90,7 @@ function BarraNavegacion() {
       const { data } = await supabase
         .from("usuarios")
         .select("rol")
-        .eq("id", currentUser.id)
+        .or(`id.eq.${currentUser.id}${currentUser.email ? `,email.eq.${currentUser.email}` : ""}`)
         .maybeSingle();
 
       setUserRole(data?.rol || currentUser.user_metadata?.rol || "cliente");
@@ -116,8 +138,8 @@ function BarraNavegacion() {
       <NavegacionPildora
         logo="/vite.svg"
         logoAlt="Casa Rural La Galana"
-        logoHref="/#hero"
-        items={NAV_ITEMS}
+        logoHref={isDashboard ? "/dashboard/resumen" : "/#hero"}
+        items={navItems}
         activeHref={activeHref}
         userHref="/login"
         userActive={activeHref === "/login"}
@@ -128,6 +150,7 @@ function BarraNavegacion() {
         pillColor="var(--color-brand)"
         hoveredPillTextColor="#ffffff"
         pillTextColor="#2c2c2c"
+        mode={isDashboard ? "dashboard" : "site"}
         className="pill-nav--site"
       />
     </header>

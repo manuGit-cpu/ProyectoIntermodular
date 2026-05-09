@@ -15,7 +15,7 @@ const fallbackTitleByPath = new Map(
   )
 );
 
-export function getPublicImageUrl(path) {
+export function obtenerUrlImagenPublica(path) {
   if (!path) return "";
   if (/^https?:\/\//i.test(path)) return path;
 
@@ -27,7 +27,7 @@ export function getPublicImageUrl(path) {
   return data.publicUrl;
 }
 
-function prettifySlug(value = "") {
+function embellecerSlug(value = "") {
   return value
     .replace(/\.[^.]+$/, "")
     .replace(/^\d+-/, "")
@@ -36,7 +36,7 @@ function prettifySlug(value = "") {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function slugify(value = "") {
+function generarSlug(value = "") {
   return value
     .toLowerCase()
     .normalize("NFD")
@@ -45,11 +45,11 @@ function slugify(value = "") {
     .replace(/(^-|-$)/g, "");
 }
 
-function isGalleryImage(item) {
+function esImagenGaleria(item) {
   return IMAGE_EXTENSIONS.test(item.name) && item.name !== FOLDER_MARKER;
 }
 
-async function listStorageFolders() {
+async function listarCarpetasAlmacenamiento() {
   const { data, error } = await supabase.rpc("listar_carpetas_galeria");
 
   if (error) return { folders: [], error };
@@ -62,15 +62,15 @@ async function listStorageFolders() {
   return { folders, error: null };
 }
 
-async function listAllGalleryImages() {
+async function listarTodasLasImagenesGaleria() {
   const { data, error } = await supabase.rpc("listar_galeria_storage");
   return { rows: data || [], error };
 }
 
-async function buildCategoriesFromStorage({ includeEmpty = false } = {}) {
-  const { folders, error } = await listStorageFolders();
+async function construirCategoriasDesdeAlmacenamiento({ includeEmpty = false } = {}) {
+  const { folders, error } = await listarCarpetasAlmacenamiento();
   if (error) return { categories: [], error };
-  const { rows, error: imagesListError } = await listAllGalleryImages();
+  const { rows, error: imagesListError } = await listarTodasLasImagenesGaleria();
   if (imagesListError) return { categories: [], error: imagesListError };
 
   const knownFolders = folders.length
@@ -79,10 +79,10 @@ async function buildCategoriesFromStorage({ includeEmpty = false } = {}) {
 
   const categories = knownFolders.map((folder, index) => {
     const images = rows
-      .filter((image) => image.carpeta === folder && isGalleryImage({ name: image.nombre_archivo }))
+      .filter((image) => image.carpeta === folder && esImagenGaleria({ name: image.nombre_archivo }))
       .map((image) => {
         const storagePath = image.storage_path;
-        const title = fallbackTitleByPath.get(storagePath) || prettifySlug(image.nombre_archivo);
+        const title = fallbackTitleByPath.get(storagePath) || embellecerSlug(image.nombre_archivo);
 
         return {
           id: storagePath,
@@ -90,7 +90,7 @@ async function buildCategoriesFromStorage({ includeEmpty = false } = {}) {
           title,
           titulo: title,
           alt: `${title} en Casa Rural La Galana`,
-          src: getPublicImageUrl(storagePath),
+          src: obtenerUrlImagenPublica(storagePath),
           storagePath,
           storage_path: storagePath,
           nombre_archivo: image.nombre_archivo,
@@ -102,8 +102,8 @@ async function buildCategoriesFromStorage({ includeEmpty = false } = {}) {
     return {
       id: folder,
       slug: folder,
-      nombre: prettifySlug(folder),
-      title: prettifySlug(folder),
+      nombre: embellecerSlug(folder),
+      title: embellecerSlug(folder),
       descripcion: "",
       intro: "",
       tone: toneFallbacks[index % toneFallbacks.length],
@@ -119,10 +119,10 @@ async function buildCategoriesFromStorage({ includeEmpty = false } = {}) {
   return { categories: visibleCategories, error: null };
 }
 
-export async function fetchGallerySections() {
+export async function obtenerSeccionesGaleria() {
   if (!supabase) return FALLBACK_GALLERY_SECTIONS;
 
-  const { categories, error } = await buildCategoriesFromStorage();
+  const { categories, error } = await construirCategoriasDesdeAlmacenamiento();
 
   if (error) {
     console.warn("No se pudo cargar la galeria desde Supabase Storage", error);
@@ -132,13 +132,13 @@ export async function fetchGallerySections() {
   return categories;
 }
 
-export async function fetchGalleryMaintenanceData() {
+export async function obtenerDatosMantenimientoGaleria() {
   if (!supabase) return { categories: [], error: new Error("Supabase no esta configurado") };
-  return buildCategoriesFromStorage({ includeEmpty: true });
+  return construirCategoriasDesdeAlmacenamiento({ includeEmpty: true });
 }
 
-export async function createGalleryCategory({ nombre, slug }) {
-  const cleanSlug = (slug || slugify(nombre)).trim();
+export async function crearCategoriaGaleria({ nombre, slug }) {
+  const cleanSlug = (slug || generarSlug(nombre)).trim();
 
   if (!cleanSlug) {
     return { data: null, error: new Error("La carpeta no puede estar vacia") };
@@ -147,7 +147,7 @@ export async function createGalleryCategory({ nombre, slug }) {
   return supabase.rpc("crear_categoria_galeria", { carpeta_nombre: cleanSlug });
 }
 
-export async function uploadGalleryImage({ category, file, title }) {
+export async function subirImagenGaleria({ category, file, title }) {
   const extension = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : "";
   const baseName = title?.trim() || file.name.replace(/\.[^.]+$/, "");
   const safeName = file.name
@@ -170,11 +170,11 @@ export async function uploadGalleryImage({ category, file, title }) {
   });
 }
 
-export async function deleteGalleryImage(image) {
+export async function eliminarImagenGaleria(image) {
   return supabase.storage.from(BUCKET_NAME).remove([image.storage_path || image.storagePath]);
 }
 
-export async function deleteGalleryCategory(category) {
+export async function eliminarCategoriaGaleria(category) {
   const { data, error } = await supabase.storage.from(BUCKET_NAME).list(category.slug, {
     limit: 1000,
   });
@@ -191,5 +191,5 @@ export async function deleteGalleryCategory(category) {
 }
 
 if (import.meta.env.DEV) {
-  window.debugGalleryStorage = fetchGallerySections;
+  window.debugGalleryStorage = obtenerSeccionesGaleria;
 }
