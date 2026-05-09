@@ -6,9 +6,9 @@ const BASE_PATH = SUPABASE_URL
 export const obtenerImagenLaGalana = (path) => `${BASE_PATH}/${path}`;
 
 export const FEATURED_IMAGES = {
-  hero: obtenerImagenLaGalana("exterior/T4Q0890.webp"),
-  login: obtenerImagenLaGalana("interior/T4Q0930.webp"),
-  reservation: obtenerImagenLaGalana("interior/T4Q0996.webp"),
+  hero: obtenerImagenLaGalana("exterior/exterior-casa.webp"),
+  login: obtenerImagenLaGalana("interior/rincon-descanso.webp"),
+  reservation: obtenerImagenLaGalana("interior/dormitorio-calido.webp"),
   exterior: obtenerImagenLaGalana("exterior/T4Q0905.webp"),
   kitchen: obtenerImagenLaGalana("interior/T4Q0913.webp"),
   livingRoom: obtenerImagenLaGalana("interior/T4Q0930.webp"),

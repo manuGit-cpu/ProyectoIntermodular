@@ -462,6 +462,7 @@ function DashboardPage() {
             </section>
           </div>
         </section>
+
       </main>
 
       <PiePagina />
