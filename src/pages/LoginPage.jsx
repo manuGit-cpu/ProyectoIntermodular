@@ -15,6 +15,50 @@ function esEmailValido(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function esErrorForeignKey(error) {
+  return String(error?.message || "").toLowerCase().includes("foreign key constraint");
+}
+
+function esperar(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+async function sincronizarPerfilUsuario(usuario) {
+  if (!supabase || !usuario?.id) {
+    return false;
+  }
+
+  const payload = {
+    id: usuario.id,
+    nombre: usuario.nombre,
+    email: usuario.email,
+    rol: usuario.rol || "cliente",
+  };
+
+  let ultimoError = null;
+
+  for (let intento = 0; intento < 3; intento += 1) {
+    const { error } = await supabase.from("usuarios").upsert(payload, { onConflict: "email" });
+
+    if (!error) {
+      return true;
+    }
+
+    ultimoError = error;
+
+    if (!esErrorForeignKey(error) || intento === 2) {
+      break;
+    }
+
+    await esperar(250 * (intento + 1));
+  }
+
+  console.warn("No se pudo sincronizar el perfil de usuario:", ultimoError);
+  return false;
+}
+
 function obtenerMensajeError(error) {
   const message = error?.message || "";
 
@@ -125,16 +169,12 @@ function PaginaLogin() {
 
         if (error) throw error;
 
-        if (data.user) {
-          const { error: profileError } = await supabase.from("usuarios").upsert({
-            id: data.user.id,
-            nombre: nombreNormalizado,
-            email: emailNormalizado,
-            rol: "cliente",
-          });
-
-          if (profileError) throw profileError;
-        }
+        await sincronizarPerfilUsuario({
+          id: data.user?.id ?? data.session?.user?.id,
+          nombre: nombreNormalizado,
+          email: emailNormalizado,
+          rol: "cliente",
+        });
 
         mostrarAlertaApp({
           title: "Cuenta creada",
@@ -161,6 +201,13 @@ function PaginaLogin() {
         });
 
         if (error) throw error;
+
+        await sincronizarPerfilUsuario({
+          id: data.user.id,
+          nombre: data.user.user_metadata?.nombre || data.user.email?.split("@")[0] || "Usuario",
+          email: data.user.email ?? emailNormalizado,
+          rol: data.user.user_metadata?.rol || "cliente",
+        });
 
         setUserEmail(data.user?.email ?? emailNormalizado);
         setPassword("");

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import BarraNavegacion from "../components/NavBar";
 import RevelarAlDesplazar from "../components/ScrollReveal";
 import PiePagina from "../layouts/Footer";
-import { fetchGallerySections } from "../services/galleryService";
+import { obtenerSeccionesGaleria } from "../services/galleryService";
 
 const toneClasses = {
   brand: "bg-brand text-white",
@@ -229,7 +229,7 @@ function PaginaGaleria() {
 
     const cargarGaleria = () => {
       setLoading(true);
-      fetchGallerySections().then((sections) => {
+      obtenerSeccionesGaleria().then((sections) => {
         if (!isMounted) return;
         setGallerySections(sections);
         setLoading(false);

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import CarruselTresD from "./ThreeDCarousel";
 import { FEATURED_IMAGES } from "../data/laGalanaImages";
-import { fetchGallerySections } from "../services/galleryService";
+import { obtenerSeccionesGaleria } from "../services/galleryService";
 
 const GALLERY_PAGE_PATH = "/galeria";
 
@@ -72,7 +72,7 @@ function Galeria() {
     let isMounted = true;
 
     const cargarGaleria = () => {
-      fetchGallerySections().then((nextSections) => {
+      obtenerSeccionesGaleria().then((nextSections) => {
         if (isMounted) setSections(nextSections);
       });
     };
