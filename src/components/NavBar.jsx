@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import NavegacionPildora from "./PillNav/PillNav";
 import { supabase } from "../supabase/client";
 import { mostrarAlertaApp } from "../utils/appAlert";
-import { obtenerUsuarioDemo, cerrarSesionUsuarioDemo } from "../utils/demoAuth";
 
 const NAV_ITEMS = [
   { label: "Reserva", href: "/#reserva", ariaLabel: "Ir a reservas" },
@@ -52,8 +51,7 @@ function BarraNavegacion() {
 
   useEffect(() => {
     async function cargarPerfil(user) {
-      const demoUser = obtenerUsuarioDemo();
-      const currentUser = user || demoUser;
+      const currentUser = user;
 
       setSessionUser(currentUser);
 
@@ -62,7 +60,7 @@ function BarraNavegacion() {
         return;
       }
 
-      if (!supabase || demoUser?.id === currentUser.id) {
+      if (!supabase) {
         setUserRole(currentUser.user_metadata?.rol || "cliente");
         return;
       }
@@ -84,9 +82,6 @@ function BarraNavegacion() {
       cargarPerfil(null);
     }
 
-    const manejarCambioAutenticacionDemo = () => cargarPerfil(null);
-    window.addEventListener("app:demo-auth", manejarCambioAutenticacionDemo);
-
     const authListener = supabase
       ? supabase.auth.onAuthStateChange((_event, session) => {
           cargarPerfil(session?.user ?? null);
@@ -94,14 +89,11 @@ function BarraNavegacion() {
       : null;
 
     return () => {
-      window.removeEventListener("app:demo-auth", manejarCambioAutenticacionDemo);
       authListener?.data.subscription.unsubscribe();
     };
   }, []);
 
   async function manejarCierreSesion() {
-    cerrarSesionUsuarioDemo();
-
     if (supabase) {
       await supabase.auth.signOut();
     }

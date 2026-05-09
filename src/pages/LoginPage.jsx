@@ -3,35 +3,55 @@ import BarraNavegacion from "../components/NavBar";
 import PiePagina from "../layouts/Footer";
 import { supabase } from "../supabase/client";
 import { mostrarAlertaApp } from "../utils/appAlert";
-import {
-  DEMO_CLIENT_USER,
-  DEMO_USER,
-  obtenerUsuarioDemo,
-  iniciarSesionUsuarioDemo,
-  cerrarSesionUsuarioDemo,
-} from "../utils/demoAuth";
 import { FEATURED_IMAGES } from "../data/laGalanaImages";
+
+const PASSWORD_MIN_LENGTH = 8;
+
+function normalizarEmail(value) {
+  return value.trim().toLowerCase();
+}
+
+function esEmailValido(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function obtenerMensajeError(error) {
+  const message = error?.message || "";
+
+  if (message.toLowerCase().includes("invalid login credentials")) {
+    return "El email o la contrasena no son correctos.";
+  }
+
+  if (message.toLowerCase().includes("user already registered")) {
+    return "Ya existe una cuenta con ese email.";
+  }
+
+  return message || "Revisa el email y la contrasena.";
+}
 
 function PaginaLogin() {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    const demoUser = obtenerUsuarioDemo();
-
-    if (demoUser) {
-      setUserEmail(demoUser.email);
-    }
-
     if (!supabase) return;
 
     supabase.auth.getUser().then(({ data }) => {
-      setUserEmail(data.user?.email ?? demoUser?.email ?? "");
+      setUserEmail(data.user?.email ?? "");
     });
+
+    const authListener = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? "");
+    });
+
+    return () => {
+      authListener.data.subscription.unsubscribe();
+    };
   }, []);
 
   const isRegister = mode === "register";
@@ -39,18 +59,48 @@ function PaginaLogin() {
   async function manejarEnvio(event) {
     event.preventDefault();
 
-    if (!supabase && isRegister) {
+    if (!supabase) {
       mostrarAlertaApp({
         title: "Supabase no esta configurado",
-        message: "El registro real necesita VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.",
+        message: "El acceso real necesita VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.",
         variant: "warning",
       });
       return;
     }
 
-    if (!email || !password || (isRegister && !name)) {
+    const emailNormalizado = normalizarEmail(email);
+    const nombreNormalizado = name.trim();
+
+    if (!emailNormalizado || !password || (isRegister && !nombreNormalizado)) {
       mostrarAlertaApp({
         message: "Completa todos los campos para continuar.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    if (!esEmailValido(emailNormalizado)) {
+      mostrarAlertaApp({
+        title: "Email no valido",
+        message: "Introduce un email con un formato correcto.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    if (isRegister && password.length < PASSWORD_MIN_LENGTH) {
+      mostrarAlertaApp({
+        title: "Contrasena demasiado corta",
+        message: `Usa al menos ${PASSWORD_MIN_LENGTH} caracteres.`,
+        variant: "warning",
+      });
+      return;
+    }
+
+    if (isRegister && password !== passwordConfirmation) {
+      mostrarAlertaApp({
+        title: "Las contrasenas no coinciden",
+        message: "Repite la misma contrasena para crear la cuenta.",
         variant: "warning",
       });
       return;
@@ -60,12 +110,14 @@ function PaginaLogin() {
 
     try {
       if (isRegister) {
+        // La contrasena no se guarda en la tabla publica: Supabase Auth la hashea
+        // en servidor y aqui solo guardamos los datos de perfil del usuario.
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: emailNormalizado,
           password,
           options: {
             data: {
-              nombre: name,
+              nombre: nombreNormalizado,
               rol: "cliente",
             },
           },
@@ -74,63 +126,44 @@ function PaginaLogin() {
         if (error) throw error;
 
         if (data.user) {
-          await supabase.from("usuarios").upsert({
+          const { error: profileError } = await supabase.from("usuarios").upsert({
             id: data.user.id,
-            nombre: name,
-            email,
+            nombre: nombreNormalizado,
+            email: emailNormalizado,
             rol: "cliente",
           });
+
+          if (profileError) throw profileError;
         }
 
         mostrarAlertaApp({
           title: "Cuenta creada",
-          message: "Ya puedes acceder con tus datos.",
+          message: data.session
+            ? "Tu sesion se ha iniciado correctamente."
+            : "Revisa tu correo si Supabase pide confirmar el email.",
           variant: "success",
         });
-        setMode("login");
-      } else {
-        if (!supabase) {
-          const demoUser = iniciarSesionUsuarioDemo(email, password);
+        setName("");
+        setPassword("");
+        setPasswordConfirmation("");
 
-          if (!demoUser) {
-            throw new Error(
-              `Usuarios demo: ${DEMO_USER.email} / ${DEMO_USER.password} o ${DEMO_CLIENT_USER.email} / ${DEMO_CLIENT_USER.password}`
-            );
-          }
-
-          setUserEmail(demoUser.email);
-          mostrarAlertaApp({
-            title: "Sesion demo iniciada",
-            message: "Has accedido con el usuario local temporal.",
-            variant: "success",
-          });
-          window.history.pushState({}, "", "/#hero");
+        if (data.session) {
+          setUserEmail(data.user?.email ?? emailNormalizado);
+          window.history.pushState({}, "", "/#reserva");
           window.dispatchEvent(new Event("app:navigate"));
-          return;
+        } else {
+          setMode("login");
         }
-
+      } else {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
+          email: emailNormalizado,
           password,
         });
 
-        if (error) {
-          const demoUser = iniciarSesionUsuarioDemo(email, password);
+        if (error) throw error;
 
-          if (!demoUser) throw error;
-
-          setUserEmail(demoUser.email);
-          mostrarAlertaApp({
-            title: "Sesion demo iniciada",
-            message: "Supabase no acepto el acceso, se uso el usuario local temporal.",
-            variant: "success",
-          });
-          window.history.pushState({}, "", "/#hero");
-          window.dispatchEvent(new Event("app:navigate"));
-          return;
-        }
-
-        setUserEmail(data.user?.email ?? email);
+        setUserEmail(data.user?.email ?? emailNormalizado);
+        setPassword("");
         mostrarAlertaApp({
           title: "Sesion iniciada",
           message: "Has accedido correctamente.",
@@ -142,7 +175,7 @@ function PaginaLogin() {
     } catch (error) {
       mostrarAlertaApp({
         title: "No se pudo acceder",
-        message: error.message || "Revisa el email y la contrasena.",
+        message: obtenerMensajeError(error),
         variant: "warning",
       });
     } finally {
@@ -151,8 +184,6 @@ function PaginaLogin() {
   }
 
   async function manejarCierreSesion() {
-    cerrarSesionUsuarioDemo();
-
     if (supabase) {
       await supabase.auth.signOut();
     }
@@ -163,6 +194,12 @@ function PaginaLogin() {
       message: "Has salido de tu cuenta.",
       variant: "success",
     });
+  }
+
+  function cambiarModo() {
+    setMode(isRegister ? "login" : "register");
+    setPassword("");
+    setPasswordConfirmation("");
   }
 
   return (
@@ -216,7 +253,7 @@ function PaginaLogin() {
                 <p className="mt-4 text-sm leading-6 text-muted">
                   {userEmail
                     ? `Sesion activa como ${userEmail}.`
-                    : `Demo admin: ${DEMO_USER.email} / ${DEMO_USER.password}. Demo cliente: ${DEMO_CLIENT_USER.email} / ${DEMO_CLIENT_USER.password}.`}
+                    : "Accede con tu cuenta o crea una nueva para gestionar tus reservas."}
                 </p>
               </div>
 
@@ -275,6 +312,20 @@ function PaginaLogin() {
                     />
                   </label>
 
+                  {isRegister && (
+                    <label className="grid gap-2 text-sm font-semibold text-copy">
+                      Repetir contrasena
+                      <input
+                        className="h-12 rounded-full border border-brand/18 bg-[#f8f7f3] px-5 text-sm outline-none transition focus:border-brand focus:bg-white"
+                        type="password"
+                        value={passwordConfirmation}
+                        onChange={(event) => setPasswordConfirmation(event.target.value)}
+                        autoComplete="new-password"
+                        placeholder="Repite tu contrasena"
+                      />
+                    </label>
+                  )}
+
                   <button
                     className="mt-2 h-12 rounded-full bg-brand px-6 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-65"
                     type="submit"
@@ -286,7 +337,7 @@ function PaginaLogin() {
                   <button
                     className="h-11 rounded-full border border-accent/20 bg-accent/8 px-6 text-sm font-bold text-accent-dark transition hover:border-accent/35 hover:bg-accent/14"
                     type="button"
-                    onClick={() => setMode(isRegister ? "login" : "register")}
+                    onClick={cambiarModo}
                   >
                     {isRegister ? "Ya tengo cuenta" : "Crear cuenta nueva"}
                   </button>
