@@ -25,8 +25,7 @@ begin
   )
   on conflict (id) do update
     set nombre = excluded.nombre,
-        email = excluded.email,
-        rol = excluded.rol;
+        email = excluded.email;
 
   return new;
 end;
@@ -49,9 +48,7 @@ as $$
       from public.usuarios
       where id = auth.uid()
         and lower(trim(rol)) in ('admin', 'administrador')
-    )
-    or lower(trim(coalesce(auth.jwt() -> 'user_metadata' ->> 'rol', ''))) in ('admin', 'administrador')
-    or lower(trim(coalesce(auth.jwt() -> 'app_metadata' ->> 'rol', ''))) in ('admin', 'administrador');
+    );
 $$;
 
 grant execute on function public.es_admin() to authenticated;

@@ -30,17 +30,41 @@ async function sincronizarPerfilUsuario(usuario) {
     return false;
   }
 
-  const payload = {
-    id: usuario.id,
-    nombre: usuario.nombre,
-    email: usuario.email,
-    rol: usuario.rol || "cliente",
-  };
-
   let ultimoError = null;
 
   for (let intento = 0; intento < 3; intento += 1) {
-    const { error } = await supabase.from("usuarios").upsert(payload, { onConflict: "email" });
+    const { data: perfilExistente, error: errorLectura } = await supabase
+      .from("usuarios")
+      .select("id, rol")
+      .or(`id.eq.${usuario.id}${usuario.email ? `,email.eq.${usuario.email}` : ""}`)
+      .limit(1)
+      .maybeSingle();
+
+    if (errorLectura) {
+      ultimoError = errorLectura;
+
+      if (!esErrorForeignKey(errorLectura) || intento === 2) {
+        break;
+      }
+
+      await esperar(250 * (intento + 1));
+      continue;
+    }
+
+    const payloadBase = {
+      nombre: usuario.nombre,
+      email: usuario.email,
+    };
+
+    const consulta = perfilExistente
+      ? supabase.from("usuarios").update(payloadBase).eq("id", perfilExistente.id)
+      : supabase.from("usuarios").insert({
+          id: usuario.id,
+          ...payloadBase,
+          rol: "cliente",
+        });
+
+    const { error } = await consulta;
 
     if (!error) {
       return true;
@@ -308,7 +332,7 @@ function PaginaLogin() {
                 <div className="mt-8 grid gap-3">
                   <a
                     className="inline-flex h-12 items-center justify-center rounded-full bg-accent px-6 text-sm font-bold text-white no-underline transition hover:bg-accent-dark"
-                    href="/#reserva"
+                    href="/mis-reservas"
                   >
                     Ver reservas
                   </a>

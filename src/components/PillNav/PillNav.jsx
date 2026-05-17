@@ -270,7 +270,7 @@ const NavegacionPildora = ({
         ? "Empleado"
         : "Cliente";
   const primaryUserHref =
-    userRole === "admin" || userRole === "administrador" ? "/dashboard/resumen" : "/#reserva";
+    userRole === "admin" || userRole === "administrador" ? "/dashboard/resumen" : "/mis-reservas";
 
   return (
     <div className="pointer-events-auto relative w-full md:w-auto">

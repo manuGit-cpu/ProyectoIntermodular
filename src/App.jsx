@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Inicio from "./pages/Home";
 import PaginaGaleria from "./pages/GalleryPage";
 import PaginaLogin from "./pages/LoginPage";
+import PaginaMisReservas from "./pages/MisReservasPage";
 import PaginaResumenDashboard from "./pages/dashboard/ResumenPage";
 import PaginaReservasDashboard from "./pages/dashboard/ReservasPage";
 import PaginaGaleriaDashboard from "./pages/dashboard/GaleriaPage";
@@ -24,6 +25,7 @@ function Aplicacion() {
 
   if (pathname === "/galeria") return <PaginaGaleria />;
   if (pathname === "/login") return <PaginaLogin />;
+  if (pathname === "/mis-reservas") return <PaginaMisReservas />;
   if (pathname === "/dashboard" || pathname === "/dashboard/resumen") return <PaginaResumenDashboard />;
   if (pathname === "/dashboard/reservas") return <PaginaReservasDashboard />;
   if (pathname === "/dashboard/galeria") return <PaginaGaleriaDashboard />;

@@ -87,13 +87,29 @@ function BarraNavegacion() {
         return;
       }
 
-      const { data } = await supabase
+      const { data: perfilPorId } = await supabase
         .from("usuarios")
         .select("rol")
-        .or(`id.eq.${currentUser.id}${currentUser.email ? `,email.eq.${currentUser.email}` : ""}`)
+        .eq("id", currentUser.id)
         .maybeSingle();
 
-      setUserRole(data?.rol || currentUser.user_metadata?.rol || "cliente");
+      if (perfilPorId?.rol) {
+        setUserRole(perfilPorId.rol);
+        return;
+      }
+
+      if (currentUser.email) {
+        const { data: perfilPorEmail } = await supabase
+          .from("usuarios")
+          .select("rol")
+          .eq("email", currentUser.email)
+          .maybeSingle();
+
+        setUserRole(perfilPorEmail?.rol || "cliente");
+        return;
+      }
+
+      setUserRole("cliente");
     }
 
     if (supabase) {
