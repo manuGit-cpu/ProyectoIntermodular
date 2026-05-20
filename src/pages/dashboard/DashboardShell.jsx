@@ -5,8 +5,6 @@ import PiePagina from "../../layouts/Footer";
 import ResumenPanel from "../../components/ResumenPanel";
 import {
   crearCategoriaGaleria,
-  eliminarCategoriaGaleria,
-  eliminarImagenGaleria,
   obtenerUrlImagenPublica,
   subirImagenGaleria,
 } from "../../services/galleryService";
@@ -1177,36 +1175,6 @@ export default function DashboardShell({ vista = "resumen" }) {
     recargar();
   }
 
-  async function manejarEliminarImagen(image) {
-    const confirmed = window.confirm(`Eliminar "${image.titulo || image.nombre_archivo}"?`);
-    if (!confirmed) return;
-
-    const { error } = await eliminarImagenGaleria(image);
-    if (error) {
-      mostrarAlertaApp({ title: "No se elimino la imagen", message: error.message, variant: "warning" });
-      return;
-    }
-
-    mostrarAlertaApp({ title: "Imagen eliminada", message: "Se ha quitado de la galeria.", variant: "success" });
-    window.dispatchEvent(new Event("gallery:changed"));
-    recargar();
-  }
-
-  async function manejarEliminarCategoria(category) {
-    const confirmed = window.confirm(`Eliminar la categoria "${category.nombre}" y sus imagenes?`);
-    if (!confirmed) return;
-
-    const { error } = await eliminarCategoriaGaleria(category);
-    if (error) {
-      mostrarAlertaApp({ title: "No se elimino la categoria", message: error.message, variant: "warning" });
-      return;
-    }
-
-    mostrarAlertaApp({ title: "Categoria eliminada", message: "Tambien se han borrado sus imagenes.", variant: "success" });
-    window.dispatchEvent(new Event("gallery:changed"));
-    recargar();
-  }
-
   if (!supabaseDisponible) {
     return (
       <div className="min-h-screen bg-surface text-copy">
@@ -1453,17 +1421,6 @@ export default function DashboardShell({ vista = "resumen" }) {
                         {selectedCategory ? selectedCategory.slug : "Elige o crea una carpeta para empezar."}
                       </p>
                     </div>
-
-                    {selectedCategory && (
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center gap-2 rounded-md border border-red-700/20 bg-red-700/8 px-3 py-2 text-sm font-bold text-red-800 transition hover:bg-red-700/14"
-                        onClick={() => manejarEliminarCategoria(selectedCategory)}
-                      >
-                        <Icono name="trash" className="h-4 w-4" />
-                        Eliminar carpeta
-                      </button>
-                    )}
                   </div>
 
                   <form className="mt-6 grid gap-4 rounded-lg border border-brand/10 bg-surface p-4 md:grid-cols-[1fr_1fr_auto] md:items-end" onSubmit={manejarSubirImagen}>
@@ -1519,14 +1476,6 @@ export default function DashboardShell({ vista = "resumen" }) {
                               alt={image.alt || image.titulo || ""}
                               loading="lazy"
                             />
-                            <button
-                              type="button"
-                              className="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/55 bg-white/88 text-red-800 shadow-[0_8px_18px_rgba(44,44,44,0.18)] transition hover:bg-red-50"
-                              onClick={() => manejarEliminarImagen(image)}
-                              aria-label={`Eliminar ${image.titulo || image.nombre_archivo}`}
-                            >
-                              <Icono name="trash" className="h-4 w-4" />
-                            </button>
                           </div>
                           <figcaption className="grid gap-1 p-4">
                             <span className="truncate text-sm font-bold">{image.titulo || image.nombre_archivo}</span>
