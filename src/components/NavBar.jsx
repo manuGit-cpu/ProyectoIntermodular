@@ -152,7 +152,7 @@ function BarraNavegacion() {
   return (
     <header className="pointer-events-none fixed top-0 left-0 z-50 flex w-full items-start justify-center bg-linear-to-b from-surface/95 via-surface/85 to-transparent px-4 pt-3 pb-4 md:px-6">
       <NavegacionPildora
-        logo="/vite.svg"
+        logo="/logo-lagalana.png"
         logoAlt="Casa Rural La Galana"
         logoHref={isDashboard ? "/dashboard/resumen" : "/#hero"}
         items={navItems}

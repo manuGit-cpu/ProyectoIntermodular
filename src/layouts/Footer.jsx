@@ -12,7 +12,7 @@ export default function PiePagina() {
             href="/#hero"
             aria-label="Ir al inicio"
           >
-            <img className="h-14 w-14" src="/vite.svg" alt="La Galana" />
+            <img className="h-14 w-14" src="/logo-lagalana.png" alt="La Galana" />
             <div>
               <div className="font-display text-[34px] leading-none tracking-[0.2px]">LaGalana</div>
               <div className="mt-0.5 text-[13px] uppercase tracking-[0.28em] text-muted">
