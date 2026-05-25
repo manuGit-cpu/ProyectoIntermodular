@@ -88,7 +88,7 @@ function generarFacturaReserva(reserva) {
   doc.setFontSize(9);
   doc.text("Casa Rural La Galana", 14, 57);
   doc.text("Alojamiento rural", 14, 63);
-  doc.text("Espana", 14, 69);
+  doc.text("España", 14, 69);
 
   doc.text(formatearTextoPdf(reserva.nombre_cliente), 112, 57);
   doc.text(formatearTextoPdf(reserva.email_cliente), 112, 63);
@@ -171,7 +171,7 @@ function generarFacturaReserva(reserva) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(107, 107, 107);
-  doc.text("Documento generado automaticamente desde el area de cliente.", 14, 270);
+  doc.text("Documento generado automáticamente desde el área de cliente.", 14, 270);
   doc.text("Gracias por confiar en Casa Rural La Galana.", 14, 276);
 
   const url = doc.output("bloburl");
@@ -265,7 +265,7 @@ export default function PaginaMisReservas() {
           <article className="rounded-[1.7rem] border border-brand/10 bg-white p-6 shadow-[0_14px_34px_rgba(44,44,44,0.06)]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Area de cliente</p>
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Área de cliente</p>
                 <h1 className="mt-2 font-display text-4xl text-copy">Mis reservas</h1>
               </div>
               <a href="/#reserva" className="text-sm font-bold text-brand-dark no-underline">
@@ -318,14 +318,14 @@ export default function PaginaMisReservas() {
                     ) : (
                       <tr>
                         <td className="px-4 py-8 text-sm text-muted" colSpan={5}>
-                          Todavia no tienes reservas registradas con esta cuenta.
+                          Todavía no tienes reservas registradas con esta cuenta.
                         </td>
                       </tr>
                     )
                   ) : (
                     <tr>
                       <td className="px-4 py-8 text-sm text-muted" colSpan={5}>
-                        Inicia sesion para ver tus reservas.
+                        Inicia sesión para ver tus reservas.
                       </td>
                     </tr>
                   )}
@@ -335,7 +335,7 @@ export default function PaginaMisReservas() {
           </article>
 
           <aside className="rounded-[1.7rem] border border-brand/10 bg-[linear-gradient(135deg,#f7f3ea_0%,#efe3cd_100%)] p-5 shadow-[0_14px_34px_rgba(44,44,44,0.06)]">
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Resumen rapido</p>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Resumen rápido</p>
             <div className="mt-4 grid gap-3">
               <div className="rounded-[1.1rem] bg-white/75 p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Reservas</p>
@@ -356,7 +356,7 @@ export default function PaginaMisReservas() {
                 href="/login"
                 className="mt-5 inline-flex min-h-[44px] w-full items-center justify-center rounded-full border border-brand/20 bg-brand px-5 py-3 text-sm font-bold text-white no-underline transition hover:bg-brand-dark"
               >
-                Iniciar sesion
+                Iniciar sesión
               </a>
             )}
           </aside>

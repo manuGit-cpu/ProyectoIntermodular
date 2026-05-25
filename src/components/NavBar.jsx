@@ -6,15 +6,15 @@ import { mostrarAlertaApp } from "../utils/appAlert";
 const NAV_ITEMS = [
   { label: "Reserva", href: "/#reserva", ariaLabel: "Ir a reservas" },
   { label: "Inicio", href: "/#hero", ariaLabel: "Ir al inicio", variant: "accent" },
-  { label: "Galeria", href: "/galeria", ariaLabel: "Ir a la galeria", variant: "accent" },
+  { label: "Galería", href: "/galeria", ariaLabel: "Ir a la galería", variant: "accent" },
   {
-    label: "Como llegar",
+    label: "Cómo llegar",
     href: "https://maps.app.goo.gl/5abzXP6wxSDkLpgN7",
-    ariaLabel: "Abrir ubicacion en Google Maps",
+    ariaLabel: "Abrir ubicación en Google Maps",
     target: "_blank",
     rel: "noreferrer",
   },
-  { label: "Llamar", href: "tel:+34600000000", ariaLabel: "Llamar por telefono" },
+  { label: "Llamar", href: "tel:+34600000000", ariaLabel: "Llamar por teléfono" },
   {
     label: "WhatsApp",
     target: "_blank",
@@ -26,14 +26,14 @@ const NAV_ITEMS = [
 const DASHBOARD_NAV_ITEMS = [
   { label: "Resumen", href: "/dashboard/resumen", ariaLabel: "Ir al resumen del dashboard" },
   { label: "Reservas", href: "/dashboard/reservas", ariaLabel: "Ir a reservas" },
-  { label: "Galeria", href: "/dashboard/galeria", ariaLabel: "Ir a la galeria" },
+  { label: "Galería", href: "/dashboard/galeria", ariaLabel: "Ir a la galería" },
   {
-    label: "Configuracion",
-    ariaLabel: "Abrir configuracion del dashboard",
+    label: "Configuración",
+    ariaLabel: "Abrir configuración del dashboard",
     children: [
       { label: "Temporadas y precios", href: "/dashboard/configuracion#temporadas-precios", ariaLabel: "Ir a temporadas y precios" },
       { label: "Servicios extra", href: "/dashboard/configuracion#servicios-extra", ariaLabel: "Ir a servicios extra" },
-      { label: "Gestion de usuarios", href: "/dashboard/configuracion#gestion-usuarios", ariaLabel: "Ir a gestion de usuarios" },
+      { label: "Gestión de usuarios", href: "/dashboard/configuracion#gestion-usuarios", ariaLabel: "Ir a gestión de usuarios" },
     ],
   },
 ];
@@ -140,7 +140,7 @@ function BarraNavegacion() {
     setUserRole("cliente");
 
     mostrarAlertaApp({
-      title: "Sesion cerrada",
+      title: "Sesión cerrada",
       message: "Has salido de tu cuenta.",
       variant: "success",
     });

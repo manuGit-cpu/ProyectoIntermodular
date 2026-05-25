@@ -19,7 +19,7 @@ const GALLERY_ITEMS = [
     id: 2,
     title: "Interiores acogedores",
     brand: "Casa Rural La Galana",
-    description: "Salon y estancias pensadas para grupos y familias.",
+    description: "Salón y estancias pensadas para grupos y familias.",
     tags: ["Interior", "Confort"],
     imageUrl: FEATURED_IMAGES.livingRoom,
     link: GALLERY_PAGE_PATH,
@@ -37,7 +37,7 @@ const GALLERY_ITEMS = [
     id: 4,
     title: "Habitaciones",
     brand: "Casa Rural La Galana",
-    description: "Dormitorios cuidados para una estancia tranquila y comoda.",
+    description: "Dormitorios cuidados para una estancia tranquila y cómoda.",
     tags: ["Dormitorio", "Descanso"],
     imageUrl: FEATURED_IMAGES.bedroom,
     link: GALLERY_PAGE_PATH,
@@ -58,8 +58,8 @@ function crearItemsCarrusel(sections) {
     id: image.id || image.src || index,
     title: image.title || section.title,
     brand: "Casa Rural La Galana",
-    description: section.intro || `Imagenes de ${section.title.toLowerCase()} de la casa rural.`,
-    tags: [section.title, "Galeria"],
+    description: section.intro || `Imágenes de ${section.title.toLowerCase()} de la casa rural.`,
+    tags: [section.title, "Galería"],
     imageUrl: image.src,
     link: GALLERY_PAGE_PATH,
   }));
@@ -96,9 +96,9 @@ function Galeria() {
       id="gallery"
     >
       <div className="mx-auto max-w-2xl">
-        <h2 className="font-display text-4xl text-copy">Galeria</h2>
+        <h2 className="font-display text-4xl text-copy">Galería</h2>
         <p className="mt-3 text-base text-muted">
-          Una primera mirada a la casa. Entra en la galeria completa para ver todas las imagenes.
+          Una primera mirada a la casa. Entra en la galería completa para ver todas las imágenes.
         </p>
       </div>
 
@@ -107,7 +107,7 @@ function Galeria() {
         autoRotate
         rotateInterval={4500}
         cardHeight={480}
-        linkLabel="Ver galeria"
+        linkLabel="Ver galería"
       />
     </section>
   );

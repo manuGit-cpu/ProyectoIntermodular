@@ -49,7 +49,7 @@ export function useDatosDashboard() {
 
     if (datosGaleria.error) {
       mostrarAlertaApp({
-        title: "No se pudo cargar la galeria",
+        title: "No se pudo cargar la galería",
         message: datosGaleria.error.message,
         variant: "warning",
       });

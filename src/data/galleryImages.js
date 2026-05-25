@@ -17,7 +17,7 @@ export const GALLERY_SECTIONS = [
   {
     id: "interior",
     title: "Interior",
-    intro: "Estancias calidas, habitaciones con encanto y rincones pensados para descansar.",
+    intro: "Estancias cálidas, habitaciones con encanto y rincones pensados para descansar.",
     tone: "brand",
     images: INTERIOR_IMAGES.map(crearImagen),
   },

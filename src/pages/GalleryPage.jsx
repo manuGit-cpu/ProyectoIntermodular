@@ -336,12 +336,12 @@ function PaginaGaleria() {
 
         <div className="mx-auto max-w-6xl px-6 sm:px-10 lg:px-0">
           {loading && (
-            <p className="py-12 text-center text-sm font-semibold text-muted">Cargando galeria...</p>
+            <p className="py-12 text-center text-sm font-semibold text-muted">Cargando galería...</p>
           )}
 
           {!loading && gallerySections.length === 0 && (
             <p className="py-12 text-center text-sm font-semibold text-muted">
-              No hay imagenes disponibles en Supabase Storage.
+              No hay imágenes disponibles en Supabase Storage.
             </p>
           )}
 

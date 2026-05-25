@@ -87,14 +87,14 @@ function obtenerMensajeError(error) {
   const message = error?.message || "";
 
   if (message.toLowerCase().includes("invalid login credentials")) {
-    return "El email o la contrasena no son correctos.";
+    return "El email o la contraseña no son correctos.";
   }
 
   if (message.toLowerCase().includes("user already registered")) {
     return "Ya existe una cuenta con ese email.";
   }
 
-  return message || "Revisa el email y la contrasena.";
+  return message || "Revisa el email y la contraseña.";
 }
 
 function PaginaLogin() {
@@ -129,7 +129,7 @@ function PaginaLogin() {
 
     if (!supabase) {
       mostrarAlertaApp({
-        title: "Supabase no esta configurado",
+        title: "Supabase no está configurado",
         message: "El acceso real necesita VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY.",
         variant: "warning",
       });
@@ -149,7 +149,7 @@ function PaginaLogin() {
 
     if (!esEmailValido(emailNormalizado)) {
       mostrarAlertaApp({
-        title: "Email no valido",
+        title: "Email no válido",
         message: "Introduce un email con un formato correcto.",
         variant: "warning",
       });
@@ -158,7 +158,7 @@ function PaginaLogin() {
 
     if (isRegister && password.length < PASSWORD_MIN_LENGTH) {
       mostrarAlertaApp({
-        title: "Contrasena demasiado corta",
+        title: "Contraseña demasiado corta",
         message: `Usa al menos ${PASSWORD_MIN_LENGTH} caracteres.`,
         variant: "warning",
       });
@@ -167,8 +167,8 @@ function PaginaLogin() {
 
     if (isRegister && password !== passwordConfirmation) {
       mostrarAlertaApp({
-        title: "Las contrasenas no coinciden",
-        message: "Repite la misma contrasena para crear la cuenta.",
+        title: "Las contraseñas no coinciden",
+        message: "Repite la misma contraseña para crear la cuenta.",
         variant: "warning",
       });
       return;
@@ -178,8 +178,8 @@ function PaginaLogin() {
 
     try {
       if (isRegister) {
-        // La contrasena no se guarda en la tabla publica: Supabase Auth la hashea
-        // en servidor y aqui solo guardamos los datos de perfil del usuario.
+        // La contraseña no se guarda en la tabla pública: Supabase Auth la hashea
+        // en servidor y aquí solo guardamos los datos de perfil del usuario.
         const { data, error } = await supabase.auth.signUp({
           email: emailNormalizado,
           password,
@@ -203,7 +203,7 @@ function PaginaLogin() {
         mostrarAlertaApp({
           title: "Cuenta creada",
           message: data.session
-            ? "Tu sesion se ha iniciado correctamente."
+            ? "Tu sesión se ha iniciado correctamente."
             : "Revisa tu correo si Supabase pide confirmar el email.",
           variant: "success",
         });
@@ -236,7 +236,7 @@ function PaginaLogin() {
         setUserEmail(data.user?.email ?? emailNormalizado);
         setPassword("");
         mostrarAlertaApp({
-          title: "Sesion iniciada",
+          title: "Sesión iniciada",
           message: "Has accedido correctamente.",
           variant: "success",
         });
@@ -261,7 +261,7 @@ function PaginaLogin() {
 
     setUserEmail("");
     mostrarAlertaApp({
-      title: "Sesion cerrada",
+      title: "Sesión cerrada",
       message: "Has salido de tu cuenta.",
       variant: "success",
     });
@@ -316,14 +316,14 @@ function PaginaLogin() {
 
               <div>
                 <p className="text-sm font-bold uppercase tracking-[0.22em] text-brand-dark">
-                  {isRegister ? "Crear cuenta" : "Inicio de sesion"}
+                  {isRegister ? "Crear cuenta" : "Inicio de sesión"}
                 </p>
                 <h2 className="mt-3 font-display text-4xl leading-tight text-copy sm:text-5xl">
                   {isRegister ? "Reserva con tu cuenta" : "Bienvenido de nuevo"}
                 </h2>
                 <p className="mt-4 text-sm leading-6 text-muted">
                   {userEmail
-                    ? `Sesion activa como ${userEmail}.`
+                    ? `Sesión activa como ${userEmail}.`
                     : "Accede con tu cuenta o crea una nueva para gestionar tus reservas."}
                 </p>
               </div>
@@ -341,7 +341,7 @@ function PaginaLogin() {
                     type="button"
                     onClick={manejarCierreSesion}
                   >
-                    Cerrar sesion
+                    Cerrar sesión
                   </button>
                 </div>
               ) : (
@@ -372,27 +372,27 @@ function PaginaLogin() {
                   </label>
 
                   <label className="grid gap-2 text-sm font-semibold text-copy">
-                    Contrasena
+                    Contraseña
                     <input
                       className="h-12 rounded-full border border-brand/18 bg-[#f8f7f3] px-5 text-sm outline-none transition focus:border-brand focus:bg-white"
                       type="password"
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       autoComplete={isRegister ? "new-password" : "current-password"}
-                      placeholder="Tu contrasena"
+                      placeholder="Tu contraseña"
                     />
                   </label>
 
                   {isRegister && (
                     <label className="grid gap-2 text-sm font-semibold text-copy">
-                      Repetir contrasena
+                      Repetir contraseña
                       <input
                         className="h-12 rounded-full border border-brand/18 bg-[#f8f7f3] px-5 text-sm outline-none transition focus:border-brand focus:bg-white"
                         type="password"
                         value={passwordConfirmation}
                         onChange={(event) => setPasswordConfirmation(event.target.value)}
                         autoComplete="new-password"
-                        placeholder="Repite tu contrasena"
+                        placeholder="Repite tu contraseña"
                       />
                     </label>
                   )}

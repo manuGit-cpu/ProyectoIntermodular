@@ -125,7 +125,7 @@ export async function obtenerSeccionesGaleria() {
   const { categories, error } = await construirCategoriasDesdeAlmacenamiento();
 
   if (error) {
-    console.warn("No se pudo cargar la galeria desde Supabase Storage", error);
+    console.warn("No se pudo cargar la galería desde Supabase Storage", error);
     return [];
   }
 
@@ -133,7 +133,7 @@ export async function obtenerSeccionesGaleria() {
 }
 
 export async function obtenerDatosMantenimientoGaleria() {
-  if (!supabase) return { categories: [], error: new Error("Supabase no esta configurado") };
+  if (!supabase) return { categories: [], error: new Error("Supabase no está configurado") };
   return construirCategoriasDesdeAlmacenamiento({ includeEmpty: true });
 }
 
@@ -141,7 +141,7 @@ export async function crearCategoriaGaleria({ nombre, slug }) {
   const cleanSlug = (slug || generarSlug(nombre)).trim();
 
   if (!cleanSlug) {
-    return { data: null, error: new Error("La carpeta no puede estar vacia") };
+    return { data: null, error: new Error("La carpeta no puede estar vacía") };
   }
 
   return supabase.rpc("crear_categoria_galeria", { carpeta_nombre: cleanSlug });

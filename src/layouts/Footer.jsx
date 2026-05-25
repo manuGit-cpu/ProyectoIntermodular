@@ -3,7 +3,7 @@ export default function PiePagina() {
     <footer
       className="scroll-mt-24 bg-[#f3f1ea] px-6 py-16 text-copy sm:px-10"
       id="mapa"
-      aria-label="Pie de pagina"
+      aria-label="Pie de página"
     >
       <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-8 md:gap-12 lg:grid-cols-[1.5fr_1fr_1fr]">
         <div className="max-w-[520px]">
@@ -28,7 +28,7 @@ export default function PiePagina() {
           <p className="text-sm leading-7 text-[#7a7a7a]">
             La Galana es una casa rural situada en el noroeste de la provincia de Zamora, muy cerca
             de la frontera con Portugal, en un pequeño pueblo de la comarca de Aliste llamado
-            Trabazos. Se trata de una casa de nueva pero cuidada construccion en la que se han
+            Trabazos. Se trata de una casa de nueva pero cuidada construcción en la que se han
             empleado los materiales típicos de la zona, como la piedra y la madera.
           </p>
         </div>
@@ -48,7 +48,7 @@ export default function PiePagina() {
             </li>
             <li>
               <a className="text-sm text-[#4a4a4a] no-underline transition hover:text-brand-dark hover:underline" href="/galeria">
-                Galeria
+                Galería
               </a>
             </li>
             <li>
@@ -130,7 +130,7 @@ export default function PiePagina() {
               <dd>Soledad, s/n, 49516 Trabazos, España</dd>
             </div>
             <div className="grid grid-cols-[92px_1fr] gap-2.5">
-              <dt className="font-bold text-muted">Telefono:</dt>
+              <dt className="font-bold text-muted">Teléfono:</dt>
               <dd>
                 <a className="text-brand-dark no-underline hover:underline" href="tel:+34669313437">
                   (+34) 669 31 34 37
@@ -160,7 +160,7 @@ export default function PiePagina() {
             </div>
           </dl>
 
-          <h3 className="mt-6 mb-3.5 text-base font-bold text-copy">Siguenos</h3>
+          <h3 className="mt-6 mb-3.5 text-base font-bold text-copy">Síguenos</h3>
           <div className="flex gap-[18px]" aria-label="Redes sociales">
             <a
               className="inline-flex h-[46px] w-[46px] items-center justify-center rounded-full bg-black/6 text-copy no-underline transition hover:-translate-y-0.5 hover:bg-black/10"

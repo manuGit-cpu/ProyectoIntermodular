@@ -43,7 +43,7 @@ export default function CarruselTresD({
   autoRotate = true,
   rotateInterval = 4000,
   cardHeight = 500,
-  linkLabel = "Ver mas",
+  linkLabel = "Ver más",
   isMobileSwipe = true,
 }) {
   const [active, setActive] = useState(0);

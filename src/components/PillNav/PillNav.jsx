@@ -185,7 +185,7 @@ const NavegacionPildora = ({
 
   const esItemActivo = (item) => {
     if (activeHref === item.href) return true;
-    if (item.label === "Configuracion" && window.location.pathname.startsWith("/dashboard/configuracion")) return true;
+    if (item.label === "Configuración" && window.location.pathname.startsWith("/dashboard/configuracion")) return true;
     return item.children?.some((child) => child.href === activeHref) || false;
   };
 
@@ -310,9 +310,9 @@ const NavegacionPildora = ({
                   {hasChildren ? (
                     <div
                       className="group relative flex h-full"
-                      ref={item.label === "Configuracion" ? configMenuRef : undefined}
-                      onMouseEnter={item.label === "Configuracion" ? () => setIsConfigMenuOpen(true) : undefined}
-                      onMouseLeave={item.label === "Configuracion" ? () => setIsConfigMenuOpen(false) : undefined}
+                      ref={item.label === "Configuración" ? configMenuRef : undefined}
+                      onMouseEnter={item.label === "Configuración" ? () => setIsConfigMenuOpen(true) : undefined}
+                      onMouseLeave={item.label === "Configuración" ? () => setIsConfigMenuOpen(false) : undefined}
                     >
                       <button
                         type="button"
@@ -498,7 +498,7 @@ const NavegacionPildora = ({
                   onLogout?.();
                 }}
               >
-                Cerrar sesion
+                Cerrar sesión
               </button>
             </div>
           )}

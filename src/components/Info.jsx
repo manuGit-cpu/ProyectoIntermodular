@@ -31,7 +31,7 @@ const IconoJardin = () => (
 );
 
 const STATS = [
-  { icon: <IconoPersonas />, value: "10", label: "personas maximo" },
+  { icon: <IconoPersonas />, value: "10", label: "personas máximo" },
   { icon: <IconoCasa />, value: "2", label: "plantas" },
   { icon: <IconoCama />, value: "4", label: "habitaciones" },
   { icon: <IconoBano />, value: "4", label: "baños privados" },
@@ -42,7 +42,7 @@ function Informacion() {
   return (
     <section className="scroll-mt-24 bg-surface px-6 py-16 text-center sm:px-10 lg:px-[70px]" id="info">
       <div className="mx-auto mb-10 max-w-2xl">
-        <h2 className="font-display text-4xl text-brand">La Galana  información de la casa</h2>
+        <h2 className="font-display text-4xl text-brand">La Galana, información de la casa</h2>
         <p className="mx-auto mt-3 max-w-[500px] text-base text-muted">
           Casa rural completa en Aliste (Zamora), perfecta para grupos familiares y escapadas en
           plena naturaleza.

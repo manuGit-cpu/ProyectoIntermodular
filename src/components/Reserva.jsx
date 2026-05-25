@@ -36,7 +36,7 @@ function Reserva() {
         mostrarAlertaApp({
           title: "No se han podido cargar los extras",
           message:
-            "Intentalo de nuevo mas tarde o continua con la reserva sin extras.",
+            "Inténtalo de nuevo más tarde o continúa con la reserva sin extras.",
           variant: "warning",
         });
       } else {
@@ -160,7 +160,7 @@ function Reserva() {
 
       if (!Number.isFinite(precioNoche) || precioNoche <= 0) {
         throw new Error(
-          `El precio de "${temporada.nombre}" no esta configurado correctamente.`,
+          `El precio de "${temporada.nombre}" no está configurado correctamente.`,
         );
       }
 
@@ -218,7 +218,7 @@ function Reserva() {
 
     if (!supabase) {
       mostrarAlertaApp({
-        title: "Supabase no esta configurado",
+        title: "Supabase no está configurado",
         message: "Configura las variables VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY para guardar reservas reales.",
         variant: "warning",
       });
@@ -237,7 +237,7 @@ function Reserva() {
 
     if (!formData.guests || Number(formData.guests) <= 0) {
       mostrarAlertaApp({
-        title: "Indica el numero de personas",
+        title: "Indica el número de personas",
         message: "La reserva necesita al menos una persona.",
         variant: "warning",
       });
@@ -335,7 +335,7 @@ function Reserva() {
       console.error("Error al guardar la reserva:", error);
       mostrarAlertaApp({
         title: "No se pudo guardar la reserva",
-        message: error.message || "Revisa la configuracion de Supabase e intentalo de nuevo.",
+        message: error.message || "Revisa la configuración de Supabase e inténtalo de nuevo.",
         variant: "warning",
       });
     } finally {
@@ -377,7 +377,7 @@ function Reserva() {
           <div className="flex h-full flex-col gap-5">
             <div className="rounded-[1.6rem] border border-white/14 bg-white/10 px-5 py-5 text-left text-white backdrop-blur-md">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-dark">
-                Tu seleccion
+                Tu selección
               </p>
 
               {startDate && endDate ? (
@@ -450,7 +450,7 @@ function Reserva() {
                     htmlFor="phone"
                     className="text-sm font-semibold text-white/88"
                   >
-                    Telefono
+                    Teléfono
                   </label>
                   <input
                     type="tel"
@@ -468,7 +468,7 @@ function Reserva() {
                     htmlFor="guests"
                     className="text-sm font-semibold text-white/88"
                   >
-                    Numero de personas *
+                    Número de personas *
                   </label>
                   <input
                     type="number"
@@ -507,7 +507,7 @@ function Reserva() {
                         Extras para tu reserva
                       </p>
                       <p className="mt-1 text-sm text-white/70">
-                        Anade servicios extra antes de confirmar tu estancia.
+                        Añade servicios extra antes de confirmar tu estancia.
                       </p>
                     </div>
 
@@ -516,7 +516,7 @@ function Reserva() {
                       onClick={abrirModalExtras}
                       className="inline-flex w-full items-center justify-center rounded-lg border border-white/16 bg-white/12 px-4 py-3 text-sm font-semibold whitespace-nowrap text-white transition hover:border-white/24 hover:bg-white/18 sm:w-auto sm:self-start cursor-pointer"
                     >
-                      Anadir extras
+                      Añadir extras
                     </button>
                   </div>
 
@@ -551,7 +551,7 @@ function Reserva() {
                     </div>
                   ) : (
                     <p className="mt-4 text-sm text-white/68">
-                      Aun no has seleccionado ningun extra.
+                      Aún no has seleccionado ningún extra.
                     </p>
                   )}
                 </div>
@@ -595,7 +595,7 @@ function Reserva() {
                   Selecciona tus extras
                 </h3>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                  Elige los servicios que quieras anadir a tu reserva y ajusta
+                  Elige los servicios que quieras añadir a tu reserva y ajusta
                   la cantidad si lo necesitas.
                 </p>
               </div>

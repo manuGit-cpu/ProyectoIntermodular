@@ -222,8 +222,8 @@ function TarjetaResumen({ label, value, icon }) {
 
 function obtenerNombreSeccion(vista) {
   if (vista === "reservas") return "Reservas";
-  if (vista === "galeria") return "Galeria";
-  if (vista === "configuracion") return "Configuracion";
+  if (vista === "galeria") return "Galería";
+  if (vista === "configuracion") return "Configuración";
   return "Resumen";
 }
 
@@ -390,7 +390,7 @@ export default function DashboardShell({ vista = "resumen" }) {
     doc.text(subtitulo, 14, 18);
     doc.setTextColor(60, 49, 33);
     doc.setFontSize(9);
-    doc.text(`Pagina ${numeroPagina}`, 182, 13);
+    doc.text(`Página ${numeroPagina}`, 182, 13);
   }
 
   function dibujarLineaCampo(doc, etiqueta, valor, x, y, ancho = 82) {
@@ -493,7 +493,7 @@ export default function DashboardShell({ vista = "resumen" }) {
 
     if (mesInicio < 1 || mesInicio > 12 || mesFin < 1 || mesFin > 12) {
       mostrarAlertaApp({
-        title: "Mes invalido",
+        title: "Mes inválido",
         message: "Selecciona meses entre enero y diciembre.",
         variant: "warning",
       });
@@ -649,7 +649,7 @@ export default function DashboardShell({ vista = "resumen" }) {
       cerrarModalUsuario();
       mostrarAlertaApp({
         title: "Invitacion enviada",
-        message: "El usuario recibira un enlace para acceder a su cuenta y su perfil se creara al iniciar sesion.",
+        message: "El usuario recibirá un enlace para acceder a su cuenta y su perfil se creará al iniciar sesión.",
         variant: "success",
       });
       return;
@@ -929,7 +929,7 @@ export default function DashboardShell({ vista = "resumen" }) {
     if (!nombreCliente || !emailCliente || !fechaEntrada || !fechaSalida || !numeroPersonas) {
       mostrarAlertaApp({
         title: "Faltan datos",
-        message: "Completa cliente, fechas y numero de personas.",
+        message: "Completa cliente, fechas y número de personas.",
         variant: "warning",
       });
       return;
@@ -967,7 +967,7 @@ export default function DashboardShell({ vista = "resumen" }) {
     cerrarModalReserva();
     mostrarAlertaApp({
       title: reservaEnEdicion ? "Reserva actualizada" : "Reserva guardada",
-      message: "La informacion se ha actualizado correctamente.",
+      message: "La información se ha actualizado correctamente.",
       variant: "success",
     });
     recargar();
@@ -1028,7 +1028,7 @@ export default function DashboardShell({ vista = "resumen" }) {
     const datosReserva = [
       ["Cliente", reserva.nombre_cliente],
       ["Email", reserva.email_cliente],
-      ["Telefono", reserva.telefono_cliente],
+      ["Teléfono", reserva.telefono_cliente],
       ["Personas", reserva.numero_personas],
       ["Entrada", obtenerFechaLegible(reserva.fecha_entrada)],
       ["Salida", obtenerFechaLegible(reserva.fecha_salida)],
@@ -1050,7 +1050,7 @@ export default function DashboardShell({ vista = "resumen" }) {
     doc.text("Formulario de viajeros", 14, inicioViajerosY);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text("Cada viajero debe completar sus datos y firmar en su pagina correspondiente.", 14, inicioViajerosY + 6);
+    doc.text("Cada viajero debe completar sus datos y firmar en su página correspondiente.", 14, inicioViajerosY + 6);
 
     for (let viajero = 1; viajero <= numeroPersonas; viajero += 1) {
       doc.addPage();
@@ -1068,9 +1068,9 @@ export default function DashboardShell({ vista = "resumen" }) {
         ["Apellidos", ""],
         ["DNI / Pasaporte", ""],
         ["Fecha de nacimiento", ""],
-        ["Telefono", ""],
+        ["Teléfono", ""],
         ["Email", ""],
-        ["Direccion", ""],
+        ["Dirección", ""],
         ["Pais", ""],
       ];
 
@@ -1112,7 +1112,7 @@ export default function DashboardShell({ vista = "resumen" }) {
     if (!nombre || !slug) {
       mostrarAlertaApp({
         title: "Faltan datos",
-        message: "Indica al menos un nombre para la categoria.",
+        message: "Indica al menos un nombre para la categoría.",
         variant: "warning",
       });
       return;
@@ -1124,7 +1124,7 @@ export default function DashboardShell({ vista = "resumen" }) {
 
     if (error) {
       mostrarAlertaApp({
-        title: "No se creo la categoria",
+        title: "No se creó la categoría",
         message: error.message,
         variant: "warning",
       });
@@ -1133,7 +1133,7 @@ export default function DashboardShell({ vista = "resumen" }) {
 
     setCategoryName("");
     setSelectedCategoryId(slug);
-    mostrarAlertaApp({ title: "Carpeta creada", message: "Ya puedes subir imagenes ahi.", variant: "success" });
+    mostrarAlertaApp({ title: "Carpeta creada", message: "Ya puedes subir imágenes ahí.", variant: "success" });
     window.dispatchEvent(new Event("gallery:changed"));
     recargar();
   }
@@ -1144,8 +1144,8 @@ export default function DashboardShell({ vista = "resumen" }) {
 
     if (!selectedCategory || !imageForm.file) {
       mostrarAlertaApp({
-        title: "Seleccion incompleta",
-        message: "Elige una categoria y una imagen para subir.",
+        title: "Selección incompleta",
+        message: "Elige una categoría y una imagen para subir.",
         variant: "warning",
       });
       return;
@@ -1170,7 +1170,7 @@ export default function DashboardShell({ vista = "resumen" }) {
 
     setImageForm({ title: "", file: null });
     form.reset();
-    mostrarAlertaApp({ title: "Imagen subida", message: "La galeria publica ya puede usarla.", variant: "success" });
+    mostrarAlertaApp({ title: "Imagen subida", message: "La galería pública ya puede usarla.", variant: "success" });
     window.dispatchEvent(new Event("gallery:changed"));
     recargar();
   }
@@ -1279,7 +1279,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                     ) : (
                       <tr>
                         <td className="px-4 py-8 text-sm text-muted" colSpan={5}>
-                          Todavia no hay reservas registradas.
+                          Todavía no hay reservas registradas.
                         </td>
                       </tr>
                     )}
@@ -1289,7 +1289,7 @@ export default function DashboardShell({ vista = "resumen" }) {
             </article>
 
             <aside className="rounded-[1.7rem] border border-brand/10 bg-[linear-gradient(135deg,#f7f3ea_0%,#efe3cd_100%)] p-5 shadow-[0_14px_34px_rgba(44,44,44,0.06)]">
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Resumen rapido</p>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Resumen rápido</p>
               <div className="mt-4 grid gap-3">
                 <div className="rounded-[1.1rem] bg-white/75 p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Reservas</p>
@@ -1322,9 +1322,9 @@ export default function DashboardShell({ vista = "resumen" }) {
               <div className="relative z-10 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <p className="text-sm font-bold uppercase tracking-[0.22em] text-brand">Panel privado</p>
-                  <h1 className="mt-3 font-display text-5xl leading-tight sm:text-6xl">Gestion de galeria</h1>
+                  <h1 className="mt-3 font-display text-5xl leading-tight sm:text-6xl">Gestión de galería</h1>
                   <p className="mt-4 max-w-2xl text-base leading-7 text-white/76">
-                    Organiza las carpetas, sube nuevas imagenes y revisa lo que se vera en la galeria publica.
+                    Organiza las carpetas, sube nuevas imágenes y revisa lo que se verá en la galería pública.
                   </p>
                 </div>
                 <a
@@ -1332,15 +1332,15 @@ export default function DashboardShell({ vista = "resumen" }) {
                   className="inline-flex items-center justify-center gap-2 rounded-md border border-white/16 bg-white/12 px-4 py-3 text-sm font-bold text-white no-underline backdrop-blur-md transition hover:bg-white/18"
                 >
                   <Icono name="eye" className="h-4 w-4" />
-                  Ver galeria
+                  Ver galería
                 </a>
               </div>
             </section>
 
             <section className="mt-6 grid gap-4 sm:grid-cols-3">
-              <TarjetaResumen label="Categorias" value={categorias.length} icon="folder" />
-              <TarjetaResumen label="Imagenes" value={categorias.reduce((total, category) => total + (category.galeria_imagenes?.length || 0), 0)} icon="image" />
-              <TarjetaResumen label="Seleccion" value={selectedImages.length} icon="upload" />
+              <TarjetaResumen label="Categorías" value={categorias.length} icon="folder" />
+              <TarjetaResumen label="Imágenes" value={categorias.reduce((total, category) => total + (category.galeria_imagenes?.length || 0), 0)} icon="image" />
+              <TarjetaResumen label="Selección" value={selectedImages.length} icon="upload" />
             </section>
 
             <section className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -1405,7 +1405,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                       className="inline-flex items-center justify-center gap-2 rounded-md border-0 bg-brand px-4 py-3 text-sm font-bold text-white transition hover:bg-brand-dark disabled:opacity-60"
                     >
                       <Icono name="plus" className="h-4 w-4" />
-                      Crear categoria
+                      Crear categoría
                     </button>
                   </div>
                 </form>
@@ -1416,7 +1416,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                   <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-dark">Carpeta activa</p>
-                      <h2 className="mt-2 font-display text-4xl">{selectedCategory?.nombre || "Sin seleccion"}</h2>
+                      <h2 className="mt-2 font-display text-4xl">{selectedCategory?.nombre || "Sin selección"}</h2>
                       <p className="mt-2 text-sm font-semibold text-muted">
                         {selectedCategory ? selectedCategory.slug : "Elige o crea una carpeta para empezar."}
                       </p>
@@ -1458,7 +1458,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                 <section className="rounded-lg border border-brand/12 bg-white p-5 shadow-[0_14px_34px_rgba(44,44,44,0.08)] sm:p-6">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                      <h2 className="font-display text-3xl">Imagenes</h2>
+                      <h2 className="font-display text-3xl">Imágenes</h2>
                       <p className="mt-1 text-sm font-semibold text-muted">
                         {selectedImages.length} elementos en {selectedCategory?.nombre || "la carpeta seleccionada"}
                       </p>
@@ -1489,10 +1489,10 @@ export default function DashboardShell({ vista = "resumen" }) {
                       <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-md bg-white text-brand-dark">
                         <Icono name="image" className="h-6 w-6" />
                       </span>
-                      <p className="mt-4 font-display text-2xl">{selectedCategory ? "Carpeta vacia" : "No hay carpeta seleccionada"}</p>
+                      <p className="mt-4 font-display text-2xl">{selectedCategory ? "Carpeta vacía" : "No hay carpeta seleccionada"}</p>
                       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
                         {selectedCategory
-                          ? "Sube la primera imagen para que aparezca en esta seccion."
+                          ? "Sube la primera imagen para que aparezca en esta sección."
                           : "Selecciona una carpeta del panel lateral o crea una nueva."}
                       </p>
                     </div>
@@ -1508,9 +1508,9 @@ export default function DashboardShell({ vista = "resumen" }) {
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Temporadas y precios</p>
-                <h1 className="mt-3 font-display text-5xl text-copy">Gestion de tarifas activas</h1>
+                <h1 className="mt-3 font-display text-5xl text-copy">Gestión de tarifas activas</h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
-                  Activa o desactiva temporadas segun la disponibilidad de la casa y el periodo del ano.
+                  Activa o desactiva temporadas según la disponibilidad de la casa y el periodo del año.
                 </p>
               </div>
 
@@ -1628,7 +1628,7 @@ export default function DashboardShell({ vista = "resumen" }) {
           <section id="gestion-usuarios" className="mt-8 rounded-[2rem] border border-brand/10 bg-white p-6 shadow-[0_16px_48px_rgba(44,44,44,0.08)] sm:p-8">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Gestion de usuarios</p>
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Gestión de usuarios</p>
                 <h2 className="mt-3 font-display text-5xl text-copy">Usuarios</h2>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
                   Gestiona los accesos y perfiles del equipo y de los residentes registrados en la casa.
@@ -1691,7 +1691,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                             </td>
                             <td className="px-5 py-4 text-muted">
                               <p>{usuario.email || "Sin contacto"}</p>
-                              <p className="mt-1 text-xs text-muted">{usuario.telefono || "Sin telefono"}</p>
+                              <p className="mt-1 text-xs text-muted">{usuario.telefono || "Sin teléfono"}</p>
                               <p className="mt-1 text-xs text-muted">Alta {formatearFechaCorta(usuario.created_at)}</p>
                             </td>
                             <td className="px-5 py-4">
@@ -2256,7 +2256,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                 </label>
 
                 <label className="grid gap-2 text-sm font-semibold text-copy">
-                  Telefono
+                  Teléfono
                   <input
                     name="telefono"
                     value={formUsuario.telefono}
@@ -2355,7 +2355,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                 </label>
 
                 <label className="grid gap-2 text-sm font-semibold text-copy">
-                  Telefono
+                  Teléfono
                   <input
                     name="telefono_cliente"
                     value={formReserva.telefono_cliente}
@@ -2388,7 +2388,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                 </label>
 
                 <label className="grid gap-2 text-sm font-semibold text-copy">
-                  Numero de personas
+                  Número de personas
                   <input
                     name="numero_personas"
                     type="number"

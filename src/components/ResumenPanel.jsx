@@ -313,7 +313,7 @@ export default function ResumenPanel({
   if (cargando) {
     return (
       <section id="resumen" className="scroll-mt-28 rounded-[2rem] border border-brand/10 bg-white p-6 shadow-[0_16px_48px_rgba(44,44,44,0.08)]">
-        <p className="text-sm font-semibold text-muted">Cargando resumen de gestion...</p>
+        <p className="text-sm font-semibold text-muted">Cargando resumen de gestión...</p>
       </section>
     );
   }
@@ -330,8 +330,8 @@ export default function ResumenPanel({
                   Panel de control
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
-                  Una vista general del comportamiento de la casa: ingresos, ocupacion, reservas y actividad
-                  reciente para tomar decisiones con una mirada rapida.
+                  Una vista general del comportamiento de la casa: ingresos, ocupación, reservas y actividad
+                  reciente para tomar decisiones con una mirada rápida.
                 </p>
               </div>
             </div>
@@ -344,9 +344,9 @@ export default function ResumenPanel({
                 icono="coin"
               />
               <TarjetaMetrica
-                titulo="Ocupacion media"
+                titulo="Ocupación media"
                 dato={formatearPorcentaje(resumen.ocupacionMensual[resumen.ocupacionMensual.length - 1] || 0)}
-                detalle="Dias ocupados del mes actual respecto al calendario."
+                detalle="Días ocupados del mes actual respecto al calendario."
                 icono="bed"
               />
               <TarjetaMetrica
@@ -366,7 +366,7 @@ export default function ResumenPanel({
             <div className="mt-6 grid gap-6 xl:grid-cols-3">
               <TarjetaGraficoLinea
                 titulo="Ingresos y extras"
-                subtitulo="Evolucion de la facturacion mensual y de los servicios extra en los ultimos 6 meses."
+                subtitulo="Evolución de la facturación mensual y de los servicios extra en los últimos 6 meses."
                 etiquetas={resumen.meses.map((mes) => mes.etiqueta)}
                 series={[
                   { label: "Ingresos", values: resumen.ingresosMensuales, color: "#b89458" },
@@ -385,10 +385,10 @@ export default function ResumenPanel({
               />
 
               <TarjetaGraficoLinea
-                titulo="Ocupacion"
-                subtitulo="Porcentaje de dias ocupados cada mes."
+                titulo="Ocupación"
+                subtitulo="Porcentaje de días ocupados cada mes."
                 etiquetas={resumen.meses.map((mes) => mes.etiqueta)}
-                series={[{ label: "Ocupacion", values: resumen.ocupacionMensual, color: "#b89458" }]}
+                series={[{ label: "Ocupación", values: resumen.ocupacionMensual, color: "#b89458" }]}
                 formatearValor={formatearPorcentaje}
               />
             </div>
@@ -399,7 +399,7 @@ export default function ResumenPanel({
                 <h2 className="mt-3 font-display text-3xl text-copy">Indicadores del sistema</h2>
                 <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   <div className="rounded-[1.1rem] bg-surface p-4">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Categorias de galeria</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Categorías de galería</p>
                     <p className="mt-2 font-display text-3xl text-copy">{formatearNumero(categorias.length)}</p>
                   </div>
                   <div className="rounded-[1.1rem] bg-surface p-4">

@@ -54,7 +54,7 @@ export default function MostrarCalendario({
 
   useEffect(() => {
     if (!supabase) {
-      console.log("No hay conexion a la base de datos" + supabase);
+      console.log("No hay conexión a la base de datos" + supabase);
       return;
     }
 
@@ -129,7 +129,7 @@ export default function MostrarCalendario({
             Disponibilidad
           </h2>
           <p className="mx-auto max-w-2xl text-sm text-muted sm:text-base">
-            Consulta de un vistazo los di­as disponibles y selecciona tu
+            Consulta de un vistazo los días disponibles y selecciona tu
             estancia ideal.
           </p>
         </div>
