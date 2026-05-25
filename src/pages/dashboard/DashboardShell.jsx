@@ -1191,7 +1191,7 @@ export default function DashboardShell({ vista = "resumen" }) {
   return (
     <div className="min-h-screen bg-surface text-copy">
       <BarraNavegacion />
-      <main className="mx-auto max-w-[1800px] px-6 pt-28 pb-20 sm:px-10">
+      <main className="mx-auto max-w-[1800px] px-4 pt-28 pb-20 sm:px-6 lg:px-10">
         {vista === "resumen" && (
           <section className="space-y-8">
             <ResumenPanel
@@ -1213,20 +1213,81 @@ export default function DashboardShell({ vista = "resumen" }) {
         )}
 
         {vista === "reservas" && (
-          <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
-            <article className="rounded-[1.7rem] border border-brand/10 bg-white p-6 shadow-[0_14px_34px_rgba(44,44,44,0.06)]">
+          <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+            <article className="min-w-0 rounded-[1.7rem] border border-brand/10 bg-white p-4 shadow-[0_14px_34px_rgba(44,44,44,0.06)] sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Reservas</p>
-                  <h2 className="mt-2 font-display text-3xl text-copy">Actividad reciente</h2>
+                  <h2 className="mt-2 font-display text-3xl leading-tight text-copy sm:text-4xl">Actividad reciente</h2>
                 </div>
-                <a href="/#reserva" className="text-sm font-bold text-brand-dark no-underline">
+                <a href="/#reserva" className="inline-flex w-full items-center justify-center rounded-md border border-brand/12 bg-surface px-4 py-3 text-sm font-bold text-brand-dark no-underline transition hover:bg-brand/8 sm:w-auto sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
                   Ver formulario
                 </a>
               </div>
 
-              <div className="mt-6 overflow-hidden rounded-[1.2rem] border border-brand/8">
-                <table className="min-w-full divide-y divide-brand/10">
+              <div className="mt-6 grid gap-4 md:hidden">
+                {reservasRecientes.length > 0 ? (
+                  reservasRecientes.map((reserva) => (
+                    <article key={reserva.id} className="rounded-[1.1rem] border border-brand/10 bg-surface p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-base font-bold text-copy">{reserva.nombre_cliente || "Sin nombre"}</p>
+                          <p className="mt-1 truncate text-xs font-semibold text-muted">{reserva.email_cliente || "Sin email"}</p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-bold text-brand-dark">
+                          {reserva.numero_personas || 0} pers.
+                        </span>
+                      </div>
+
+                      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                        <div className="rounded-md bg-white/75 p-3">
+                          <dt className="text-xs font-bold uppercase tracking-[0.14em] text-muted">Fechas</dt>
+                          <dd className="mt-1 font-semibold text-copy">
+                            {obtenerFechaLegible(reserva.fecha_entrada)} - {obtenerFechaLegible(reserva.fecha_salida)}
+                          </dd>
+                        </div>
+                        <div className="rounded-md bg-white/75 p-3">
+                          <dt className="text-xs font-bold uppercase tracking-[0.14em] text-muted">Total</dt>
+                          <dd className="mt-1 font-semibold text-copy">{formatearMoneda(reserva.precio_total)}</dd>
+                        </div>
+                      </dl>
+
+                      <div className="mt-4 grid gap-2">
+                        <button
+                          type="button"
+                          className="inline-flex min-h-[42px] items-center justify-center rounded-md border border-brand/20 bg-brand/8 px-3 py-2 text-xs font-bold text-brand-dark transition hover:bg-brand/14"
+                          onClick={() => generarPdfReserva(reserva)}
+                        >
+                          Imprimir PDF
+                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            className="inline-flex min-h-[42px] items-center justify-center rounded-md border border-brand/12 bg-white px-3 py-2 text-xs font-bold text-copy transition hover:bg-brand/8"
+                            onClick={() => abrirModalNuevaReserva(reserva)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            className="inline-flex min-h-[42px] items-center justify-center rounded-md border border-red-700/12 bg-red-700/6 px-3 py-2 text-xs font-bold text-red-800 transition hover:bg-red-700/12"
+                            onClick={() => manejarEliminarReserva(reserva)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="rounded-[1.1rem] border border-dashed border-brand/24 bg-surface px-5 py-10 text-center text-sm font-semibold text-muted">
+                    Todavía no hay reservas registradas.
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 hidden overflow-x-auto rounded-[1.2rem] border border-brand/8 md:block">
+                <table className="min-w-[860px] divide-y divide-brand/10">
                   <thead className="bg-surface text-left text-xs font-bold uppercase tracking-[0.18em] text-muted">
                     <tr>
                       <th className="px-4 py-3">Cliente</th>
@@ -1290,7 +1351,7 @@ export default function DashboardShell({ vista = "resumen" }) {
 
             <aside className="rounded-[1.7rem] border border-brand/10 bg-[linear-gradient(135deg,#f7f3ea_0%,#efe3cd_100%)] p-5 shadow-[0_14px_34px_rgba(44,44,44,0.06)]">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Resumen rápido</p>
-              <div className="mt-4 grid gap-3">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                 <div className="rounded-[1.1rem] bg-white/75 p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Reservas</p>
                   <p className="mt-1 font-display text-3xl text-copy">{reservas.length}</p>
@@ -1307,8 +1368,8 @@ export default function DashboardShell({ vista = "resumen" }) {
         )}
 
         {vista === "galeria" && (
-          <section>
-            <section className="relative overflow-hidden rounded-lg bg-copy px-6 py-8 text-white shadow-[0_20px_60px_rgba(44,44,44,0.18)] sm:px-8 lg:px-10">
+          <section className="space-y-6">
+            <section className="relative overflow-hidden rounded-lg bg-copy px-4 py-7 text-white shadow-[0_20px_60px_rgba(44,44,44,0.18)] sm:px-8 sm:py-8 lg:px-10">
               {previewImage && (
                 <img
                   className="absolute inset-0 h-full w-full object-cover opacity-28"
@@ -1319,17 +1380,17 @@ export default function DashboardShell({ vista = "resumen" }) {
               )}
               <div className="absolute inset-0 bg-linear-to-r from-copy via-copy/86 to-copy/45" />
 
-              <div className="relative z-10 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-[0.22em] text-brand">Panel privado</p>
-                  <h1 className="mt-3 font-display text-5xl leading-tight sm:text-6xl">Gestión de galería</h1>
+              <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand sm:text-sm sm:tracking-[0.22em]">Panel privado</p>
+                  <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight sm:text-5xl lg:text-6xl">Gestión de galería</h1>
                   <p className="mt-4 max-w-2xl text-base leading-7 text-white/76">
                     Organiza las carpetas, sube nuevas imágenes y revisa lo que se verá en la galería pública.
                   </p>
                 </div>
                 <a
                   href="/galeria"
-                  className="inline-flex items-center justify-center gap-2 rounded-md border border-white/16 bg-white/12 px-4 py-3 text-sm font-bold text-white no-underline backdrop-blur-md transition hover:bg-white/18"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-white/16 bg-white/12 px-4 py-3 text-sm font-bold text-white no-underline backdrop-blur-md transition hover:bg-white/18 sm:w-auto"
                 >
                   <Icono name="eye" className="h-4 w-4" />
                   Ver galería
@@ -1337,14 +1398,14 @@ export default function DashboardShell({ vista = "resumen" }) {
               </div>
             </section>
 
-            <section className="mt-6 grid gap-4 sm:grid-cols-3">
+            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <TarjetaResumen label="Categorías" value={categorias.length} icon="folder" />
               <TarjetaResumen label="Imágenes" value={categorias.reduce((total, category) => total + (category.galeria_imagenes?.length || 0), 0)} icon="image" />
               <TarjetaResumen label="Selección" value={selectedImages.length} icon="upload" />
             </section>
 
-            <section className="mt-6 grid gap-6 lg:grid-cols-[320px_1fr]">
-              <aside className="grid content-start gap-5">
+            <section className="grid gap-6 xl:grid-cols-[minmax(260px,320px)_minmax(0,1fr)]">
+              <aside className="grid content-start gap-5 md:grid-cols-2 xl:grid-cols-1">
                 <div className="rounded-lg border border-brand/12 bg-white p-5 shadow-[0_14px_34px_rgba(44,44,44,0.08)]">
                   <div className="flex items-center justify-between gap-3">
                     <h2 className="font-display text-2xl">Carpetas</h2>
@@ -1356,7 +1417,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                   {cargando ? (
                     <p className="mt-5 text-sm font-semibold text-muted">Cargando mantenimiento...</p>
                   ) : (
-                    <div className="mt-5 grid gap-2">
+                    <div className="mt-5 grid max-h-[420px] gap-2 overflow-y-auto pr-1">
                       {categorias.map((category) => {
                         const isSelected = category.id === selectedCategoryId;
                         const imageCount = category.galeria_imagenes?.length || 0;
@@ -1365,7 +1426,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                           <button
                             key={category.id}
                             type="button"
-                            className={`grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-md border px-3 py-3 text-left transition ${
+                            className={`grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-md border px-3 py-3 text-left transition ${
                               isSelected
                                 ? "border-brand/35 bg-brand/12 text-copy"
                                 : "border-brand/10 bg-surface text-copy hover:border-brand/24 hover:bg-brand/8"
@@ -1393,7 +1454,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                     <label className="grid gap-2 text-sm font-semibold">
                       Nombre
                       <input
-                        className="rounded-md border border-brand/16 px-3 py-2 font-normal outline-none focus:border-brand"
+                        className="min-w-0 rounded-md border border-brand/16 px-3 py-2 font-normal outline-none focus:border-brand"
                         value={categoryName}
                         onChange={(event) => setCategoryName(event.target.value)}
                         placeholder="Habitaciones"
@@ -1411,33 +1472,33 @@ export default function DashboardShell({ vista = "resumen" }) {
                 </form>
               </aside>
 
-              <div className="grid content-start gap-6">
+              <div className="grid min-w-0 content-start gap-6">
                 <section className="rounded-lg border border-brand/12 bg-white p-5 shadow-[0_14px_34px_rgba(44,44,44,0.08)] sm:p-6">
                   <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-dark">Carpeta activa</p>
-                      <h2 className="mt-2 font-display text-4xl">{selectedCategory?.nombre || "Sin selección"}</h2>
-                      <p className="mt-2 text-sm font-semibold text-muted">
+                      <h2 className="mt-2 break-words font-display text-3xl sm:text-4xl">{selectedCategory?.nombre || "Sin selección"}</h2>
+                      <p className="mt-2 break-words text-sm font-semibold text-muted">
                         {selectedCategory ? selectedCategory.slug : "Elige o crea una carpeta para empezar."}
                       </p>
                     </div>
                   </div>
 
-                  <form className="mt-6 grid gap-4 rounded-lg border border-brand/10 bg-surface p-4 md:grid-cols-[1fr_1fr_auto] md:items-end" onSubmit={manejarSubirImagen}>
-                    <label className="grid gap-2 text-sm font-semibold">
+                  <form className="mt-6 grid gap-4 rounded-lg border border-brand/10 bg-surface p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end" onSubmit={manejarSubirImagen}>
+                    <label className="grid min-w-0 gap-2 text-sm font-semibold">
                       Imagen
                       <input
-                        className="rounded-md border border-brand/16 bg-white px-3 py-2 font-normal outline-none file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-white"
+                        className="min-w-0 rounded-md border border-brand/16 bg-white px-3 py-2 font-normal outline-none file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-bold file:text-white"
                         type="file"
                         accept="image/*"
                         onChange={(event) => setImageForm((current) => ({ ...current, file: event.target.files?.[0] || null }))}
                       />
                     </label>
 
-                    <label className="grid gap-2 text-sm font-semibold">
+                    <label className="grid min-w-0 gap-2 text-sm font-semibold">
                       Titulo
                       <input
-                        className="rounded-md border border-brand/16 bg-white px-3 py-2 font-normal outline-none focus:border-brand"
+                        className="min-w-0 rounded-md border border-brand/16 bg-white px-3 py-2 font-normal outline-none focus:border-brand"
                         value={imageForm.title}
                         onChange={(event) => setImageForm((current) => ({ ...current, title: event.target.value }))}
                         placeholder="Dormitorio principal"
@@ -1447,7 +1508,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                     <button
                       type="submit"
                       disabled={saving || !selectedCategoryId}
-                      className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-md border-0 bg-accent px-4 py-3 text-sm font-bold text-white transition hover:bg-accent-dark disabled:opacity-60"
+                      className="inline-flex min-h-[42px] w-full items-center justify-center gap-2 rounded-md border-0 bg-accent px-4 py-3 text-sm font-bold text-white transition hover:bg-accent-dark disabled:opacity-60 lg:w-auto"
                     >
                       <Icono name="upload" className="h-4 w-4" />
                       Subir
@@ -1466,7 +1527,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                   </div>
 
                   {selectedCategory && selectedImages.length > 0 ? (
-                    <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                       {selectedImages.map((image) => (
                         <figure key={image.id} className="group m-0 overflow-hidden rounded-lg border border-brand/10 bg-surface">
                           <div className="relative aspect-[4/3] overflow-hidden bg-copy/6">
@@ -2302,17 +2363,17 @@ export default function DashboardShell({ vista = "resumen" }) {
         )}
 
         {vista === "reservas" && mostrarModalReserva && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-8" onClick={cerrarModalReserva}>
+          <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/45 px-3 py-5 sm:items-center sm:px-4 sm:py-8" onClick={cerrarModalReserva}>
             <section
-              className="w-full max-w-4xl rounded-[1.8rem] border border-brand/10 bg-white p-6 shadow-[0_24px_80px_rgba(0,0,0,0.18)] sm:p-8"
+              className="max-h-[calc(100vh-2.5rem)] w-full max-w-4xl overflow-y-auto rounded-[1.4rem] border border-brand/10 bg-white p-4 shadow-[0_24px_80px_rgba(0,0,0,0.18)] sm:rounded-[1.8rem] sm:p-8"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-start justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">
                     {reservaEnEdicion ? "Editar reserva" : "Nueva reserva"}
                   </p>
-                  <h2 className="mt-2 font-display text-3xl text-copy">
+                  <h2 className="mt-2 font-display text-3xl leading-tight text-copy sm:text-4xl">
                     {reservaEnEdicion ? "Modificar reserva" : "Crear reserva"}
                   </h2>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
@@ -2322,7 +2383,7 @@ export default function DashboardShell({ vista = "resumen" }) {
 
                 <button
                   type="button"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand/12 bg-surface text-brand-dark transition hover:bg-brand/10"
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand/12 bg-surface text-brand-dark transition hover:bg-brand/10"
                   onClick={cerrarModalReserva}
                   aria-label="Cerrar modal de reserva"
                 >
@@ -2331,63 +2392,63 @@ export default function DashboardShell({ vista = "resumen" }) {
               </div>
 
               <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={manejarGuardarReserva}>
-                <label className="grid gap-2 text-sm font-semibold text-copy md:col-span-2">
+                <label className="grid min-w-0 gap-2 text-sm font-semibold text-copy md:col-span-2">
                   Nombre del cliente
                   <input
                     name="nombre_cliente"
                     value={formReserva.nombre_cliente}
                     onChange={manejarCambioReserva}
-                    className="rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
+                    className="min-w-0 rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
                     placeholder="Nombre y apellidos"
                   />
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-copy">
+                <label className="grid min-w-0 gap-2 text-sm font-semibold text-copy">
                   Email
                   <input
                     name="email_cliente"
                     type="email"
                     value={formReserva.email_cliente}
                     onChange={manejarCambioReserva}
-                    className="rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
+                    className="min-w-0 rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
                     placeholder="cliente@correo.com"
                   />
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-copy">
+                <label className="grid min-w-0 gap-2 text-sm font-semibold text-copy">
                   Teléfono
                   <input
                     name="telefono_cliente"
                     value={formReserva.telefono_cliente}
                     onChange={manejarCambioReserva}
-                    className="rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
+                    className="min-w-0 rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
                     placeholder="+34 600 000 000"
                   />
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-copy">
+                <label className="grid min-w-0 gap-2 text-sm font-semibold text-copy">
                   Fecha de entrada
                   <input
                     name="fecha_entrada"
                     type="date"
                     value={formReserva.fecha_entrada}
                     onChange={manejarCambioReserva}
-                    className="rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
+                    className="min-w-0 rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
                   />
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-copy">
+                <label className="grid min-w-0 gap-2 text-sm font-semibold text-copy">
                   Fecha de salida
                   <input
                     name="fecha_salida"
                     type="date"
                     value={formReserva.fecha_salida}
                     onChange={manejarCambioReserva}
-                    className="rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
+                    className="min-w-0 rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
                   />
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-copy">
+                <label className="grid min-w-0 gap-2 text-sm font-semibold text-copy">
                   Número de personas
                   <input
                     name="numero_personas"
@@ -2396,11 +2457,11 @@ export default function DashboardShell({ vista = "resumen" }) {
                     step="1"
                     value={formReserva.numero_personas}
                     onChange={manejarCambioReserva}
-                    className="rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
+                    className="min-w-0 rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
                   />
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-copy">
+                <label className="grid min-w-0 gap-2 text-sm font-semibold text-copy">
                   Precio alojamiento
                   <input
                     name="precio_alojamiento"
@@ -2409,11 +2470,11 @@ export default function DashboardShell({ vista = "resumen" }) {
                     step="0.01"
                     value={formReserva.precio_alojamiento}
                     onChange={manejarCambioReserva}
-                    className="rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
+                    className="min-w-0 rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
                   />
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-copy">
+                <label className="grid min-w-0 gap-2 text-sm font-semibold text-copy">
                   Precio extras
                   <input
                     name="precio_extras"
@@ -2422,11 +2483,11 @@ export default function DashboardShell({ vista = "resumen" }) {
                     step="0.01"
                     value={formReserva.precio_extras}
                     onChange={manejarCambioReserva}
-                    className="rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
+                    className="min-w-0 rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
                   />
                 </label>
 
-                <label className="grid gap-2 text-sm font-semibold text-copy md:col-span-2">
+                <label className="grid min-w-0 gap-2 text-sm font-semibold text-copy md:col-span-2">
                   Precio total
                   <input
                     name="precio_total"
@@ -2435,11 +2496,11 @@ export default function DashboardShell({ vista = "resumen" }) {
                     step="0.01"
                     value={formReserva.precio_total}
                     onChange={manejarCambioReserva}
-                    className="rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
+                    className="min-w-0 rounded-xl border border-brand/12 bg-white px-4 py-3 font-normal outline-none transition focus:border-brand"
                   />
                 </label>
 
-                <div className="flex items-end gap-3 md:col-span-2">
+                <div className="grid gap-3 sm:flex sm:items-end md:col-span-2">
                   <button
                     type="submit"
                     disabled={saving}

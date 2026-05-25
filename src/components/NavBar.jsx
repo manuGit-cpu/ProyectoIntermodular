@@ -24,6 +24,7 @@ const NAV_ITEMS = [
 ];
 
 const DASHBOARD_NAV_ITEMS = [
+  { label: "Inicio", href: "/#hero", ariaLabel: "Volver a la página de inicio", variant: "accent" },
   { label: "Resumen", href: "/dashboard/resumen", ariaLabel: "Ir al resumen del dashboard" },
   { label: "Reservas", href: "/dashboard/reservas", ariaLabel: "Ir a reservas" },
   { label: "Galería", href: "/dashboard/galeria", ariaLabel: "Ir a la galería" },

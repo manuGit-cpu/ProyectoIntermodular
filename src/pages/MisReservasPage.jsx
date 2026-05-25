@@ -260,21 +260,74 @@ export default function PaginaMisReservas() {
     <div className="min-h-screen bg-surface text-copy">
       <BarraNavegacion />
 
-      <main className="mx-auto max-w-[1500px] px-6 pt-28 pb-20 sm:px-10">
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
-          <article className="rounded-[1.7rem] border border-brand/10 bg-white p-6 shadow-[0_14px_34px_rgba(44,44,44,0.06)]">
+      <main className="mx-auto max-w-[1500px] px-4 pt-28 pb-20 sm:px-6 lg:px-10">
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+          <article className="min-w-0 rounded-[1.7rem] border border-brand/10 bg-white p-4 shadow-[0_14px_34px_rgba(44,44,44,0.06)] sm:p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Área de cliente</p>
-                <h1 className="mt-2 font-display text-4xl text-copy">Mis reservas</h1>
+                <h1 className="mt-2 font-display text-4xl leading-tight text-copy sm:text-5xl">Mis reservas</h1>
               </div>
-              <a href="/#reserva" className="text-sm font-bold text-brand-dark no-underline">
+              <a href="/#reserva" className="inline-flex w-full items-center justify-center rounded-md border border-brand/12 bg-surface px-4 py-3 text-sm font-bold text-brand-dark no-underline transition hover:bg-brand/8 sm:w-auto sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
                 Nueva reserva
               </a>
             </div>
 
-            <div className="mt-6 overflow-hidden rounded-[1.2rem] border border-brand/8">
-              <table className="min-w-full divide-y divide-brand/10">
+            <div className="mt-6 grid gap-4 md:hidden">
+              {cargando ? (
+                <div className="rounded-[1.1rem] border border-brand/10 bg-surface px-5 py-10 text-center text-sm font-semibold text-muted">
+                  Cargando tus reservas...
+                </div>
+              ) : usuario ? (
+                reservas.length > 0 ? (
+                  reservas.map((reserva) => (
+                    <article key={reserva.id} className="rounded-[1.1rem] border border-brand/10 bg-surface p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-base font-bold text-copy">{reserva.nombre_cliente || "Sin nombre"}</p>
+                          <p className="mt-1 truncate text-xs font-semibold text-muted">#{String(reserva.id).slice(0, 8)}</p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-bold text-brand-dark">
+                          {reserva.numero_personas || 0} pers.
+                        </span>
+                      </div>
+
+                      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                        <div className="rounded-md bg-white/75 p-3">
+                          <dt className="text-xs font-bold uppercase tracking-[0.14em] text-muted">Fechas</dt>
+                          <dd className="mt-1 font-semibold text-copy">
+                            {obtenerFechaLegible(reserva.fecha_entrada)} - {obtenerFechaLegible(reserva.fecha_salida)}
+                          </dd>
+                        </div>
+                        <div className="rounded-md bg-white/75 p-3">
+                          <dt className="text-xs font-bold uppercase tracking-[0.14em] text-muted">Total</dt>
+                          <dd className="mt-1 font-semibold text-copy">{formatearMoneda(reserva.precio_total, 0)}</dd>
+                        </div>
+                      </dl>
+
+                      <button
+                        type="button"
+                        className="mt-4 inline-flex min-h-[42px] w-full items-center justify-center rounded-md border border-brand/20 bg-brand/8 px-3 py-2 text-xs font-bold text-brand-dark transition hover:bg-brand/14"
+                        onClick={() => generarFacturaReserva(reserva)}
+                      >
+                        Imprimir factura
+                      </button>
+                    </article>
+                  ))
+                ) : (
+                  <div className="rounded-[1.1rem] border border-dashed border-brand/24 bg-surface px-5 py-10 text-center text-sm font-semibold text-muted">
+                    Todavía no tienes reservas registradas con esta cuenta.
+                  </div>
+                )
+              ) : (
+                <div className="rounded-[1.1rem] border border-dashed border-brand/24 bg-surface px-5 py-10 text-center text-sm font-semibold text-muted">
+                  Inicia sesión para ver tus reservas.
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 hidden overflow-x-auto rounded-[1.2rem] border border-brand/8 md:block">
+              <table className="min-w-[760px] divide-y divide-brand/10">
                 <thead className="bg-surface text-left text-xs font-bold uppercase tracking-[0.18em] text-muted">
                   <tr>
                     <th className="px-4 py-3">Reserva</th>
@@ -336,7 +389,7 @@ export default function PaginaMisReservas() {
 
           <aside className="rounded-[1.7rem] border border-brand/10 bg-[linear-gradient(135deg,#f7f3ea_0%,#efe3cd_100%)] p-5 shadow-[0_14px_34px_rgba(44,44,44,0.06)]">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Resumen rápido</p>
-            <div className="mt-4 grid gap-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
               <div className="rounded-[1.1rem] bg-white/75 p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Reservas</p>
                 <p className="mt-1 font-display text-3xl text-copy">{totales.reservas}</p>
