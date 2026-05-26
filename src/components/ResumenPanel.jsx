@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   CartesianGrid,
   Legend,
@@ -15,14 +15,6 @@ function crearFechaDesdeSql(fechaSql) {
   const [anio, mes, dia] = String(fechaSql).split("-").map(Number);
   if (!anio || !mes || !dia) return null;
   return new Date(anio, mes - 1, dia);
-}
-
-function sumarMeses(fecha, desplazamiento) {
-  const copia = new Date(fecha);
-  copia.setDate(1);
-  copia.setMonth(copia.getMonth() + desplazamiento);
-  copia.setHours(0, 0, 0, 0);
-  return copia;
 }
 
 function claveMes(fecha) {
@@ -53,6 +45,35 @@ function calcularNoches(fechaEntrada, fechaSalida) {
   if (!fechaEntrada || !fechaSalida) return 0;
   const milisegundos = fechaSalida - fechaEntrada;
   return Math.max(0, Math.ceil(milisegundos / (1000 * 60 * 60 * 24)));
+}
+
+function obtenerFechaReferenciaReserva(reserva) {
+  return crearFechaDesdeSql(reserva.created_at) || crearFechaDesdeSql(reserva.fecha_entrada);
+}
+
+function crearMesesAnio(anio) {
+  return Array.from({ length: 12 }, (_, index) => {
+    const fecha = new Date(anio, index, 1);
+    return { fecha, etiqueta: obtenerEtiquetaMes(fecha) };
+  });
+}
+
+function obtenerAniosDisponibles(reservas) {
+  const anios = new Set([new Date().getFullYear()]);
+
+  reservas.forEach((reserva) => {
+    [
+      obtenerFechaReferenciaReserva(reserva),
+      crearFechaDesdeSql(reserva.fecha_entrada),
+      crearFechaDesdeSql(reserva.fecha_salida),
+    ].forEach((fecha) => {
+      if (fecha && !Number.isNaN(fecha.getTime())) {
+        anios.add(fecha.getFullYear());
+      }
+    });
+  });
+
+  return [...anios].sort((a, b) => b - a);
 }
 
 function crearSerieMensual({ registros, selector, meses }) {
@@ -261,25 +282,28 @@ export default function ResumenPanel({
   temporadas = [],
   cargando = false,
 }) {
+  const aniosDisponibles = useMemo(() => obtenerAniosDisponibles(reservas), [reservas]);
+  const [anioSeleccionado, setAnioSeleccionado] = useState(new Date().getFullYear());
+
   const resumen = useMemo(() => {
-    const fechaBase = new Date();
-    const meses = Array.from({ length: 6 }, (_, index) => {
-      const fecha = sumarMeses(fechaBase, index - 5);
-      return { fecha, etiqueta: obtenerEtiquetaMes(fecha) };
+    const meses = crearMesesAnio(anioSeleccionado);
+    const reservasDelAnio = reservas.filter((reserva) => {
+      const fechaReferencia = obtenerFechaReferenciaReserva(reserva);
+      return fechaReferencia?.getFullYear() === anioSeleccionado;
     });
 
     const ingresosMensuales = crearSerieMensual({
-      registros: reservas,
+      registros: reservasDelAnio,
       meses,
       selector: (reserva) => Number(reserva.precio_total || 0),
     });
     const extrasMensuales = crearSerieMensual({
-      registros: reservas,
+      registros: reservasDelAnio,
       meses,
       selector: (reserva) => Number(reserva.precio_extras || 0),
     });
     const reservasMensuales = crearSerieMensual({
-      registros: reservas,
+      registros: reservasDelAnio,
       meses,
       selector: () => 1,
     });
@@ -288,27 +312,30 @@ export default function ResumenPanel({
       const reservasDelMes = reservasMensuales[index] || 0;
       return reservasDelMes > 0 ? ingreso / reservasDelMes : 0;
     });
-    const nochesPorReserva = reservas.map((reserva) =>
+    const nochesPorReserva = reservasDelAnio.map((reserva) =>
       calcularNoches(crearFechaDesdeSql(reserva.fecha_entrada), crearFechaDesdeSql(reserva.fecha_salida))
     );
 
-    const ingresosTotales = reservas.reduce((total, reserva) => total + Number(reserva.precio_total || 0), 0);
-    const extrasTotales = reservas.reduce((total, reserva) => total + Number(reserva.precio_extras || 0), 0);
-    const ticketPromedio = reservas.length > 0 ? ingresosTotales / reservas.length : 0;
+    const ingresosTotales = reservasDelAnio.reduce((total, reserva) => total + Number(reserva.precio_total || 0), 0);
+    const extrasTotales = reservasDelAnio.reduce((total, reserva) => total + Number(reserva.precio_extras || 0), 0);
+    const ticketPromedio = reservasDelAnio.length > 0 ? ingresosTotales / reservasDelAnio.length : 0;
+    const ocupacionMedia = ocupacionMensual.reduce((total, valor) => total + valor, 0) / ocupacionMensual.length;
 
     return {
       meses,
+      reservasDelAnio,
       ingresosMensuales,
       extrasMensuales,
       reservasMensuales,
       ocupacionMensual,
+      ocupacionMedia,
       nochesPorReserva,
       ingresosTotales,
       extrasTotales,
       ticketPromedio,
       ticketPromedioMensual,
     };
-  }, [reservas]);
+  }, [anioSeleccionado, reservas]);
 
   if (cargando) {
     return (
@@ -334,30 +361,44 @@ export default function ResumenPanel({
                   reciente para tomar decisiones con una mirada rápida.
                 </p>
               </div>
+              <label className="grid min-w-[180px] gap-2 text-xs font-bold uppercase tracking-[0.18em] text-muted">
+                Año mostrado
+                <select
+                  className="h-12 rounded-md border border-brand/16 bg-white px-4 text-sm font-bold normal-case tracking-normal text-copy outline-none transition focus:border-brand"
+                  value={anioSeleccionado}
+                  onChange={(event) => setAnioSeleccionado(Number(event.target.value))}
+                >
+                  {aniosDisponibles.map((anio) => (
+                    <option key={anio} value={anio}>
+                      {anio}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
 
             <div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <TarjetaMetrica
                 titulo="Ingresos totales"
                 dato={formatearMoneda(resumen.ingresosTotales)}
-                detalle="Suma de todas las reservas registradas."
+                detalle={`Suma de las reservas registradas en ${anioSeleccionado}.`}
                 icono="coin"
               />
               <TarjetaMetrica
                 titulo="Ocupación media"
-                dato={formatearPorcentaje(resumen.ocupacionMensual[resumen.ocupacionMensual.length - 1] || 0)}
-                detalle="Días ocupados del mes actual respecto al calendario."
+                dato={formatearPorcentaje(resumen.ocupacionMedia || 0)}
+                detalle={`Media mensual de ocupaci�n durante ${anioSeleccionado}.`}
                 icono="bed"
               />
               <TarjetaMetrica
                 titulo="Precio promedio"
                 dato={formatearMoneda(resumen.ticketPromedio)}
-                detalle={`Media por reserva sobre ${formatearNumero(reservas.length)} reservas.`}
+                detalle={`Media sobre ${formatearNumero(resumen.reservasDelAnio.length)} reservas del año.`}
                 icono="ticket"
               />
               <TarjetaMetrica
                 titulo="Reservas recibidas"
-                dato={formatearNumero(reservas.length)}
+                dato={formatearNumero(resumen.reservasDelAnio.length)}
                 detalle={`${formatearNumero(resumen.nochesPorReserva.reduce((total, valor) => total + valor, 0))} noches acumuladas.`}
                 icono="spark"
               />
@@ -366,7 +407,7 @@ export default function ResumenPanel({
             <div className="mt-6 grid gap-6 xl:grid-cols-3">
               <TarjetaGraficoLinea
                 titulo="Ingresos y extras"
-                subtitulo="Evolución de la facturación mensual y de los servicios extra en los últimos 6 meses."
+                subtitulo={`Evoluci�n mensual de la facturaci�n y de los servicios extra durante ${anioSeleccionado}.`}
                 etiquetas={resumen.meses.map((mes) => mes.etiqueta)}
                 series={[
                   { label: "Ingresos", values: resumen.ingresosMensuales, color: "#b89458" },
@@ -377,7 +418,7 @@ export default function ResumenPanel({
 
               <TarjetaGraficoLinea
                 titulo="Reservas mensuales"
-                subtitulo="Cantidad de reservas creadas por mes."
+                subtitulo={`Cantidad de reservas creadas cada mes de ${anioSeleccionado}.`}
                 etiquetas={resumen.meses.map((mes) => mes.etiqueta)}
                 series={[{ label: "Reservas", values: resumen.reservasMensuales, color: "#7f934f" }]}
                 formatearValor={formatearNumero}
@@ -386,7 +427,7 @@ export default function ResumenPanel({
 
               <TarjetaGraficoLinea
                 titulo="Ocupación"
-                subtitulo="Porcentaje de días ocupados cada mes."
+                subtitulo={`Porcentaje de d�as ocupados en cada mes de ${anioSeleccionado}.`}
                 etiquetas={resumen.meses.map((mes) => mes.etiqueta)}
                 series={[{ label: "Ocupación", values: resumen.ocupacionMensual, color: "#b89458" }]}
                 formatearValor={formatearPorcentaje}

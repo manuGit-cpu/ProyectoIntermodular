@@ -11,6 +11,7 @@ const NavegacionPildora = ({
   userActive = false,
   user = null,
   userRole = "cliente",
+  userName = "",
   onLogout,
   className = "",
   ease = "power3.easeOut",
@@ -18,7 +19,6 @@ const NavegacionPildora = ({
   pillColor = "#060010",
   hoveredPillTextColor = "#060010",
   pillTextColor,
-  mode = "site",
   onMobileMenuClick,
   initialLoadAnimation = true,
 }) => {
@@ -189,11 +189,6 @@ const NavegacionPildora = ({
     return item.children?.some((child) => child.href === activeHref) || false;
   };
 
-  const alternarMenuConfiguracion = () => {
-    setIsConfigMenuOpen((open) => !open);
-    setIsUserMenuOpen(false);
-  };
-
   const cerrarMenuConfiguracion = () => {
     setIsConfigMenuOpen(false);
     setIsMobileConfigOpen(false);
@@ -261,7 +256,7 @@ const NavegacionPildora = ({
 
   const homeHref = logoHref ?? items?.[0]?.href ?? "#";
   const isLoggedIn = Boolean(user);
-  const userLabel = user?.user_metadata?.nombre || user?.email || "Usuario";
+  const userLabel = userName || user?.email || "Usuario";
   const userInitial = userLabel.trim().charAt(0).toUpperCase() || "U";
   const roleLabel =
     userRole === "admin" || userRole === "administrador"

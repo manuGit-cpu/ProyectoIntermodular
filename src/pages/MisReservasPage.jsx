@@ -209,14 +209,13 @@ export default function PaginaMisReservas() {
         return;
       }
 
-      const filtroEmail = user.email ? `,email_cliente.eq.${user.email}` : "";
       const selectConExtras =
         "id, usuario_id, nombre_cliente, email_cliente, telefono_cliente, numero_personas, created_at, fecha_entrada, fecha_salida, precio_alojamiento, precio_extras, precio_total, reservas_extras(id, cantidad, precio_unitario, extras(nombre, descripcion))";
 
       let { data, error } = await supabase
         .from("reservas")
         .select(selectConExtras)
-        .or(`usuario_id.eq.${user.id}${filtroEmail}`)
+        .eq("usuario_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -225,7 +224,7 @@ export default function PaginaMisReservas() {
           .select(
             "id, usuario_id, nombre_cliente, email_cliente, telefono_cliente, numero_personas, created_at, fecha_entrada, fecha_salida, precio_alojamiento, precio_extras, precio_total",
           )
-          .or(`usuario_id.eq.${user.id}${filtroEmail}`)
+          .eq("usuario_id", user.id)
           .order("created_at", { ascending: false });
 
         data = respuestaSimple.data;
@@ -260,17 +259,17 @@ export default function PaginaMisReservas() {
     <div className="min-h-screen bg-surface text-copy">
       <BarraNavegacion />
 
-      <main className="mx-auto max-w-[1500px] px-4 pt-28 pb-20 sm:px-6 lg:px-10">
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
-          <article className="min-w-0 rounded-[1.7rem] border border-brand/10 bg-white p-4 shadow-[0_14px_34px_rgba(44,44,44,0.06)] sm:p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <main className="mx-auto flex min-h-[calc(100vh-96px)] w-full max-w-[1680px] flex-col px-4 pt-30 pb-16 sm:px-6 lg:px-10">
+        <section className="grid flex-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <article className="min-w-0 rounded-lg border border-brand/10 bg-white p-5 shadow-[0_18px_48px_rgba(44,44,44,0.08)] sm:p-8">
+            <div className="flex flex-col gap-5 border-b border-brand/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Área de cliente</p>
                 <h1 className="mt-2 font-display text-4xl leading-tight text-copy sm:text-5xl">Mis reservas</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+                  Consulta tus estancias registradas y genera la factura de cada reserva.
+                </p>
               </div>
-              <a href="/#reserva" className="inline-flex w-full items-center justify-center rounded-md border border-brand/12 bg-surface px-4 py-3 text-sm font-bold text-brand-dark no-underline transition hover:bg-brand/8 sm:w-auto sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
-                Nueva reserva
-              </a>
             </div>
 
             <div className="mt-6 grid gap-4 md:hidden">
@@ -326,41 +325,47 @@ export default function PaginaMisReservas() {
               )}
             </div>
 
-            <div className="mt-6 hidden overflow-x-auto rounded-[1.2rem] border border-brand/8 md:block">
-              <table className="min-w-[760px] divide-y divide-brand/10">
-                <thead className="bg-surface text-left text-xs font-bold uppercase tracking-[0.18em] text-muted">
+            <div className="mt-6 hidden overflow-x-auto rounded-lg border border-brand/10 md:block">
+              <table className="w-full min-w-[920px] table-fixed divide-y divide-brand/10">
+                <thead className="bg-[#f7f3ea] text-left text-xs font-bold uppercase tracking-[0.18em] text-muted">
                   <tr>
-                    <th className="px-4 py-3">Reserva</th>
-                    <th className="px-4 py-3">Fechas</th>
-                    <th className="px-4 py-3">Personas</th>
-                    <th className="px-4 py-3">Total</th>
-                    <th className="px-4 py-3">Factura</th>
+                    <th className="w-[30%] px-5 py-4">Reserva</th>
+                    <th className="w-[25%] px-5 py-4">Fechas</th>
+                    <th className="w-[15%] px-5 py-4">Personas</th>
+                    <th className="w-[14%] px-5 py-4">Total</th>
+                    <th className="w-[16%] px-5 py-4 text-right">Factura</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-brand/8 bg-white">
                   {cargando ? (
                     <tr>
-                      <td className="px-4 py-8 text-sm text-muted" colSpan={5}>
+                      <td className="px-5 py-10 text-sm text-muted" colSpan={5}>
                         Cargando tus reservas...
                       </td>
                     </tr>
                   ) : usuario ? (
                     reservas.length > 0 ? (
                       reservas.map((reserva) => (
-                        <tr key={reserva.id} className="text-sm">
-                          <td className="px-4 py-4">
-                            <p className="font-bold text-copy">{reserva.nombre_cliente || "Sin nombre"}</p>
-                            <p className="mt-1 text-xs text-muted">#{String(reserva.id).slice(0, 8)}</p>
+                        <tr key={reserva.id} className="text-sm transition hover:bg-surface/70">
+                          <td className="px-5 py-5">
+                            <p className="truncate font-bold text-copy">{reserva.nombre_cliente || "Sin nombre"}</p>
+                            <p className="mt-1 text-xs font-semibold text-muted">#{String(reserva.id).slice(0, 8)}</p>
                           </td>
-                          <td className="px-4 py-4 text-muted">
+                          <td className="px-5 py-5 font-semibold text-muted">
+                            <span className="block truncate">
                             {obtenerFechaLegible(reserva.fecha_entrada)} - {obtenerFechaLegible(reserva.fecha_salida)}
+                            </span>
                           </td>
-                          <td className="px-4 py-4 font-semibold text-copy">{reserva.numero_personas || 0}</td>
-                          <td className="px-4 py-4 font-semibold text-copy">{formatearMoneda(reserva.precio_total, 0)}</td>
-                          <td className="px-4 py-4">
+                          <td className="px-5 py-5">
+                            <span className="inline-flex rounded-full bg-brand/10 px-3 py-1 text-xs font-bold text-brand-dark">
+                              {reserva.numero_personas || 0} pers.
+                            </span>
+                          </td>
+                          <td className="px-5 py-5 font-bold text-copy">{formatearMoneda(reserva.precio_total, 0)}</td>
+                          <td className="px-5 py-5 text-right">
                             <button
                               type="button"
-                              className="inline-flex items-center justify-center rounded-md border border-brand/20 bg-brand/8 px-3 py-2 text-xs font-bold text-brand-dark transition hover:bg-brand/14"
+                              className="inline-flex min-h-[38px] max-w-full items-center justify-center rounded-md border border-brand/20 bg-brand/8 px-4 py-2 text-xs font-bold text-brand-dark transition hover:bg-brand/14"
                               onClick={() => generarFacturaReserva(reserva)}
                             >
                               Imprimir factura
@@ -370,14 +375,14 @@ export default function PaginaMisReservas() {
                       ))
                     ) : (
                       <tr>
-                        <td className="px-4 py-8 text-sm text-muted" colSpan={5}>
+                        <td className="px-5 py-10 text-sm text-muted" colSpan={5}>
                           Todavía no tienes reservas registradas con esta cuenta.
                         </td>
                       </tr>
                     )
                   ) : (
                     <tr>
-                      <td className="px-4 py-8 text-sm text-muted" colSpan={5}>
+                      <td className="px-5 py-10 text-sm text-muted" colSpan={5}>
                         Inicia sesión para ver tus reservas.
                       </td>
                     </tr>
@@ -387,18 +392,18 @@ export default function PaginaMisReservas() {
             </div>
           </article>
 
-          <aside className="rounded-[1.7rem] border border-brand/10 bg-[linear-gradient(135deg,#f7f3ea_0%,#efe3cd_100%)] p-5 shadow-[0_14px_34px_rgba(44,44,44,0.06)]">
+          <aside className="rounded-lg border border-brand/10 bg-[linear-gradient(135deg,#f7f3ea_0%,#efe3cd_100%)] p-5 shadow-[0_18px_48px_rgba(44,44,44,0.08)] xl:sticky xl:top-28">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Resumen rápido</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-              <div className="rounded-[1.1rem] bg-white/75 p-4">
+              <div className="rounded-md bg-white/80 p-4 shadow-[inset_0_0_0_1px_rgba(194,168,120,0.08)]">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Reservas</p>
                 <p className="mt-1 font-display text-3xl text-copy">{totales.reservas}</p>
               </div>
-              <div className="rounded-[1.1rem] bg-white/75 p-4">
+              <div className="rounded-md bg-white/80 p-4 shadow-[inset_0_0_0_1px_rgba(194,168,120,0.08)]">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Noches</p>
                 <p className="mt-1 font-display text-3xl text-copy">{totales.noches}</p>
               </div>
-              <div className="rounded-[1.1rem] bg-white/75 p-4">
+              <div className="rounded-md bg-white/80 p-4 shadow-[inset_0_0_0_1px_rgba(194,168,120,0.08)]">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Total facturado</p>
                 <p className="mt-1 font-display text-3xl text-copy">{formatearMoneda(totales.importe, 0)}</p>
               </div>

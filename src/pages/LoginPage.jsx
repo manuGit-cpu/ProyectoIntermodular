@@ -15,72 +15,23 @@ function esEmailValido(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function esErrorForeignKey(error) {
-  return String(error?.message || "").toLowerCase().includes("foreign key constraint");
-}
-
-function esperar(ms) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
-async function sincronizarPerfilUsuario(usuario) {
+async function validarPerfilUsuario(usuario) {
   if (!supabase || !usuario?.id) {
     return false;
   }
 
-  let ultimoError = null;
+  const { data: perfilExistente, error } = await supabase
+    .from("usuarios")
+    .select("id")
+    .or(`id.eq.${usuario.id}${usuario.email ? `,email.eq.${usuario.email}` : ""}`)
+    .limit(1)
+    .maybeSingle();
 
-  for (let intento = 0; intento < 3; intento += 1) {
-    const { data: perfilExistente, error: errorLectura } = await supabase
-      .from("usuarios")
-      .select("id, rol")
-      .or(`id.eq.${usuario.id}${usuario.email ? `,email.eq.${usuario.email}` : ""}`)
-      .limit(1)
-      .maybeSingle();
-
-    if (errorLectura) {
-      ultimoError = errorLectura;
-
-      if (!esErrorForeignKey(errorLectura) || intento === 2) {
-        break;
-      }
-
-      await esperar(250 * (intento + 1));
-      continue;
-    }
-
-    const payloadBase = {
-      nombre: usuario.nombre,
-      email: usuario.email,
-    };
-
-    const consulta = perfilExistente
-      ? supabase.from("usuarios").update(payloadBase).eq("id", perfilExistente.id)
-      : supabase.from("usuarios").insert({
-          id: usuario.id,
-          ...payloadBase,
-          rol: "cliente",
-        });
-
-    const { error } = await consulta;
-
-    if (!error) {
-      return true;
-    }
-
-    ultimoError = error;
-
-    if (!esErrorForeignKey(error) || intento === 2) {
-      break;
-    }
-
-    await esperar(250 * (intento + 1));
+  if (error) {
+    throw error;
   }
 
-  console.warn("No se pudo sincronizar el perfil de usuario:", ultimoError);
-  return false;
+  return Boolean(perfilExistente);
 }
 
 function obtenerMensajeError(error) {
@@ -178,46 +129,12 @@ function PaginaLogin() {
 
     try {
       if (isRegister) {
-        // La contraseña no se guarda en la tabla pública: Supabase Auth la hashea
-        // en servidor y aquí solo guardamos los datos de perfil del usuario.
-        const { data, error } = await supabase.auth.signUp({
-          email: emailNormalizado,
-          password,
-          options: {
-            data: {
-              nombre: nombreNormalizado,
-              rol: "cliente",
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        await sincronizarPerfilUsuario({
-          id: data.user?.id ?? data.session?.user?.id,
-          nombre: nombreNormalizado,
-          email: emailNormalizado,
-          rol: "cliente",
-        });
-
         mostrarAlertaApp({
-          title: "Cuenta creada",
-          message: data.session
-            ? "Tu sesión se ha iniciado correctamente."
-            : "Revisa tu correo si Supabase pide confirmar el email.",
-          variant: "success",
+          title: "Cuenta no registrada",
+          message: "Esta app no crea usuarios automaticamente. Pide al administrador que cree tu cuenta en Supabase.",
+          variant: "warning",
         });
-        setName("");
-        setPassword("");
-        setPasswordConfirmation("");
-
-        if (data.session) {
-          setUserEmail(data.user?.email ?? emailNormalizado);
-          window.history.pushState({}, "", "/#reserva");
-          window.dispatchEvent(new Event("app:navigate"));
-        } else {
-          setMode("login");
-        }
+        return;
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: emailNormalizado,
@@ -226,12 +143,21 @@ function PaginaLogin() {
 
         if (error) throw error;
 
-        await sincronizarPerfilUsuario({
+        const perfilExiste = await validarPerfilUsuario({
           id: data.user.id,
-          nombre: data.user.user_metadata?.nombre || data.user.email?.split("@")[0] || "Usuario",
           email: data.user.email ?? emailNormalizado,
-          rol: data.user.user_metadata?.rol || "cliente",
         });
+
+        if (!perfilExiste) {
+          await supabase.auth.signOut();
+          setUserEmail("");
+          mostrarAlertaApp({
+            title: "Cuenta sin perfil",
+            message: "Tu usuario no existe en la tabla de usuarios de Supabase. Contacta con el administrador.",
+            variant: "warning",
+          });
+          return;
+        }
 
         setUserEmail(data.user?.email ?? emailNormalizado);
         setPassword("");

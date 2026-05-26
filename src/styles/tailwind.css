@@ -114,6 +114,10 @@
     @apply opacity-45;
   }
 
+  .calendar-shell .react-calendar__tile.confirmada:disabled {
+    @apply cursor-not-allowed opacity-100;
+  }
+
   .calendar-shell .react-calendar__tile.disponible {
     @apply border-accent/20 bg-accent/18;
   }

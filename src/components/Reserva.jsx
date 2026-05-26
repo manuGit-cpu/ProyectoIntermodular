@@ -170,6 +170,35 @@ function Reserva() {
     return total;
   };
 
+  const hayReservaEnFechas = async (fechaEntrada, fechaSalida) => {
+    const { data, error } = await supabase
+      .from("reservas")
+      .select("id")
+      .lte("fecha_entrada", formatearFechaSql(fechaSalida))
+      .gte("fecha_salida", formatearFechaSql(fechaEntrada))
+      .limit(1);
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).length > 0;
+  };
+
+  const obtenerUsuarioActual = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.user) {
+      return sessionData.session.user;
+    }
+
+    const { data: userData, error } = await supabase.auth.getUser();
+    if (error) {
+      throw error;
+    }
+
+    return userData?.user ?? null;
+  };
+
   const abrirModalExtras = () => {
     setModalExtrasAbierto(true);
   };
@@ -271,9 +300,30 @@ function Reserva() {
     setGuardandoReserva(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await obtenerUsuarioActual();
+
+      if (!user?.id) {
+        mostrarAlertaApp({
+          title: "Inicia sesión para reservar",
+          message: "Necesitas acceder con tu cuenta para que la reserva quede asociada a tu perfil.",
+          variant: "warning",
+        });
+        return;
+      }
+
+      const fechasOcupadas = await hayReservaEnFechas(
+        selectedDates[0],
+        selectedDates[1],
+      );
+
+      if (fechasOcupadas) {
+        mostrarAlertaApp({
+          title: "Fechas no disponibles",
+          message: "Ya existe una reserva en esas fechas. Elige otro rango disponible.",
+          variant: "warning",
+        });
+        return;
+      }
 
       const precioAlojamiento = await calcularPrecioAlojamiento(
         selectedDates[0],
@@ -284,7 +334,7 @@ function Reserva() {
       const { data: reservaGuardada, error: errorReserva } = await supabase
         .from("reservas")
         .insert({
-          usuario_id: user?.id ?? null,
+          usuario_id: user.id,
           nombre_cliente: reservationData.name,
           email_cliente: reservationData.email,
           telefono_cliente: reservationData.phone || null,

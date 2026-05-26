@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import { supabase } from "../supabase/client.js";
 import { FEATURED_IMAGES } from "../data/laGalanaImages.js";
+import { mostrarAlertaApp } from "../utils/appAlert.js";
 
 export default function MostrarCalendario({
   showHeading = true,
@@ -92,11 +93,33 @@ export default function MostrarCalendario({
 
   const fechaEstaReservada = (date) => diasReservados.has(formatearFecha(date));
 
+  const rangoContieneFechaReservada = (fechaInicio, fechaFin) => {
+    if (!fechaInicio || !fechaFin) return false;
+
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+    inicio.setHours(0, 0, 0, 0);
+    fin.setHours(0, 0, 0, 0);
+
+    const fechaActual = new Date(inicio <= fin ? inicio : fin);
+    const fechaLimite = new Date(inicio <= fin ? fin : inicio);
+
+    while (fechaActual <= fechaLimite) {
+      if (fechaEstaReservada(fechaActual)) {
+        return true;
+      }
+
+      fechaActual.setDate(fechaActual.getDate() + 1);
+    }
+
+    return false;
+  };
+
   const estaFechaEnRango = (date) => {
     if (!selectedRange[0] || !selectedRange[1]) return false;
 
-    const start = selectedRange[0];
-    const end = selectedRange[1];
+    const start = new Date(selectedRange[0]);
+    const end = new Date(selectedRange[1]);
     const current = new Date(date);
 
     current.setHours(0, 0, 0, 0);
@@ -107,6 +130,16 @@ export default function MostrarCalendario({
   };
 
   const manejarCambioCalendario = (value) => {
+    if (Array.isArray(value) && rangoContieneFechaReservada(value[0], value[1])) {
+      mostrarAlertaApp({
+        title: "Fechas no disponibles",
+        message: "La estancia seleccionada incluye días ya reservados. Elige otro rango disponible.",
+        variant: "warning",
+      });
+      onDateChange?.([null, null]);
+      return;
+    }
+
     if (onDateChange) {
       onDateChange(value);
     }
@@ -191,6 +224,9 @@ export default function MostrarCalendario({
               onChange={manejarCambioCalendario}
               value={selectedRange}
               selectRange={true}
+              tileDisabled={({ date, view }) =>
+                view === "month" && fechaEstaReservada(date)
+              }
               tileClassName={({ date, view }) => {
                 if (view !== "month") return null;
                 let classes = obtenerEstado(date);

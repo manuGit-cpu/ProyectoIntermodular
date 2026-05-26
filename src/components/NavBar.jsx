@@ -55,6 +55,7 @@ function BarraNavegacion() {
   const [activeHref, setActiveHref] = useState(obtenerHrefActivo);
   const [sessionUser, setSessionUser] = useState(null);
   const [userRole, setUserRole] = useState("cliente");
+  const [userName, setUserName] = useState("");
   const isDashboard = typeof window !== "undefined" && window.location.pathname.startsWith("/dashboard");
   const navItems = isDashboard ? DASHBOARD_NAV_ITEMS : NAV_ITEMS;
 
@@ -80,37 +81,42 @@ function BarraNavegacion() {
 
       if (!currentUser) {
         setUserRole("cliente");
+        setUserName("");
         return;
       }
 
       if (!supabase) {
         setUserRole(currentUser.user_metadata?.rol || "cliente");
+        setUserName("");
         return;
       }
 
       const { data: perfilPorId } = await supabase
         .from("usuarios")
-        .select("rol")
+        .select("nombre, rol")
         .eq("id", currentUser.id)
         .maybeSingle();
 
-      if (perfilPorId?.rol) {
-        setUserRole(perfilPorId.rol);
+      if (perfilPorId) {
+        setUserRole(perfilPorId.rol || "cliente");
+        setUserName(perfilPorId.nombre || "");
         return;
       }
 
       if (currentUser.email) {
         const { data: perfilPorEmail } = await supabase
           .from("usuarios")
-          .select("rol")
+          .select("nombre, rol")
           .eq("email", currentUser.email)
           .maybeSingle();
 
         setUserRole(perfilPorEmail?.rol || "cliente");
+        setUserName(perfilPorEmail?.nombre || "");
         return;
       }
 
       setUserRole("cliente");
+      setUserName("");
     }
 
     if (supabase) {
@@ -139,6 +145,7 @@ function BarraNavegacion() {
 
     setSessionUser(null);
     setUserRole("cliente");
+    setUserName("");
 
     mostrarAlertaApp({
       title: "Sesión cerrada",
@@ -162,6 +169,7 @@ function BarraNavegacion() {
         userActive={activeHref === "/login"}
         user={sessionUser}
         userRole={userRole}
+        userName={userName}
         onLogout={manejarCierreSesion}
         baseColor="#eae6dc"
         pillColor="var(--color-brand)"

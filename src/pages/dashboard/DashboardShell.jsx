@@ -255,6 +255,7 @@ export default function DashboardShell({ vista = "resumen" }) {
     rol: "cliente",
   });
   const [formReserva, setFormReserva] = useState({
+    usuario_id: null,
     nombre_cliente: "",
     email_cliente: "",
     telefono_cliente: "",
@@ -877,6 +878,7 @@ export default function DashboardShell({ vista = "resumen" }) {
   function abrirModalNuevaReserva(reserva) {
     setReservaEnEdicion(reserva?.id || null);
     setFormReserva({
+      usuario_id: reserva?.usuario_id || null,
       nombre_cliente: reserva?.nombre_cliente || "",
       email_cliente: reserva?.email_cliente || "",
       telefono_cliente: reserva?.telefono_cliente || "",
@@ -917,7 +919,7 @@ export default function DashboardShell({ vista = "resumen" }) {
     }
 
     const nombreCliente = formReserva.nombre_cliente.trim();
-    const emailCliente = formReserva.email_cliente.trim();
+    const emailCliente = formReserva.email_cliente.trim().toLowerCase();
     const telefonoCliente = formReserva.telefono_cliente.trim();
     const fechaEntrada = formReserva.fecha_entrada;
     const fechaSalida = formReserva.fecha_salida;
@@ -936,7 +938,44 @@ export default function DashboardShell({ vista = "resumen" }) {
     }
 
     setSaving(true);
+    let consultaSolapamiento = supabase
+      .from("reservas")
+      .select("id")
+      .lte("fecha_entrada", fechaSalida)
+      .gte("fecha_salida", fechaEntrada)
+      .limit(1);
+
+    if (reservaEnEdicion) {
+      consultaSolapamiento = consultaSolapamiento.neq("id", reservaEnEdicion);
+    }
+
+    const { data: reservasSolapadas, error: errorSolapamiento } = await consultaSolapamiento;
+
+    if (errorSolapamiento) {
+      setSaving(false);
+      mostrarAlertaApp({
+        title: "No se pudo comprobar la disponibilidad",
+        message: errorSolapamiento.message,
+        variant: "warning",
+      });
+      return;
+    }
+
+    if ((reservasSolapadas ?? []).length > 0) {
+      setSaving(false);
+      mostrarAlertaApp({
+        title: "Fechas no disponibles",
+        message: "Ya existe una reserva en esas fechas. Elige otro rango disponible.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    const usuarioReserva = usuarios.find(
+      (usuario) => String(usuario.email || "").trim().toLowerCase() === emailCliente,
+    );
     const payloadReserva = {
+      usuario_id: usuarioReserva?.id || formReserva.usuario_id || null,
       nombre_cliente: nombreCliente,
       email_cliente: emailCliente,
       telefono_cliente: telefonoCliente || null,
@@ -1202,13 +1241,6 @@ export default function DashboardShell({ vista = "resumen" }) {
               temporadas={temporadas}
               cargando={cargando}
             />
-
-            <section className="grid gap-4 md:grid-cols-4">
-              <TarjetaResumen label="Reservas" value={reservas.length} icon="spark" />
-              <TarjetaResumen label="Usuarios" value={usuarios.length} icon="users" />
-              <TarjetaResumen label="Extras" value={extras.filter((extra) => extra.activo).length} icon="ticket" />
-              <TarjetaResumen label="Temporadas" value={temporadas.filter((temporada) => temporada.activo).length} icon="season" />
-            </section>
           </section>
         )}
 
