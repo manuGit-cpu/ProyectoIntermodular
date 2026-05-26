@@ -1,19 +1,9 @@
 import { supabase } from "../supabase/client";
-import { GALLERY_SECTIONS as FALLBACK_GALLERY_SECTIONS } from "../data/galleryImages";
 
 const BUCKET_NAME = "la-galana";
 const FOLDER_MARKER = ".emptyFolderPlaceholder";
 const IMAGE_EXTENSIONS = /\.(avif|gif|jpe?g|png|svg|webp)$/i;
 const toneFallbacks = ["accent", "brand", "copy"];
-
-const fallbackTitleByPath = new Map(
-  FALLBACK_GALLERY_SECTIONS.flatMap((section) =>
-    section.images.map((image) => {
-      const path = image.src.split("/images/la-galana/")[1] || image.storagePath || "";
-      return [path, image.title];
-    })
-  )
-);
 
 export function obtenerUrlImagenPublica(path) {
   if (!path) return "";
@@ -82,7 +72,7 @@ async function construirCategoriasDesdeAlmacenamiento({ includeEmpty = false } =
       .filter((image) => image.carpeta === folder && esImagenGaleria({ name: image.nombre_archivo }))
       .map((image) => {
         const storagePath = image.storage_path;
-        const title = fallbackTitleByPath.get(storagePath) || embellecerSlug(image.nombre_archivo);
+        const title = embellecerSlug(image.nombre_archivo);
 
         return {
           id: storagePath,
@@ -120,7 +110,7 @@ async function construirCategoriasDesdeAlmacenamiento({ includeEmpty = false } =
 }
 
 export async function obtenerSeccionesGaleria() {
-  if (!supabase) return FALLBACK_GALLERY_SECTIONS;
+  if (!supabase) return [];
 
   const { categories, error } = await construirCategoriasDesdeAlmacenamiento();
 

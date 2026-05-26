@@ -1,11 +1,15 @@
-import { FEATURED_IMAGES } from "../data/laGalanaImages";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const IMAGE_BASE_PATH = SUPABASE_URL
+  ? `${SUPABASE_URL}/storage/v1/object/public/la-galana`
+  : "/images/la-galana";
+const HERO_IMAGE = `${IMAGE_BASE_PATH}/exterior/exterior-casa.webp`;
 
 function Portada() {
   return (
     <section
       className="relative mt-[72px] flex min-h-[90vh] scroll-mt-24 items-center overflow-hidden bg-stone-900 bg-cover bg-center bg-no-repeat px-6 sm:px-10 lg:px-16"
       id="hero"
-      style={{ backgroundImage: `url("${FEATURED_IMAGES.hero}")` }}
+      style={{ backgroundImage: `url("${HERO_IMAGE}")` }}
     >
       <div className="absolute inset-0 bg-neutral-900/45" aria-hidden="true" />
 

@@ -3,9 +3,13 @@ import BarraNavegacion from "../components/NavBar";
 import PiePagina from "../layouts/Footer";
 import { supabase } from "../supabase/client";
 import { mostrarAlertaApp } from "../utils/appAlert";
-import { FEATURED_IMAGES } from "../data/laGalanaImages";
 
 const PASSWORD_MIN_LENGTH = 8;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const IMAGE_BASE_PATH = SUPABASE_URL
+  ? `${SUPABASE_URL}/storage/v1/object/public/la-galana`
+  : "/images/la-galana";
+const LOGIN_IMAGE = `${IMAGE_BASE_PATH}/interior/rincon-descanso.webp`;
 
 function normalizarEmail(value) {
   return value.trim().toLowerCase();
@@ -285,7 +289,7 @@ function PaginaLogin() {
           <div className="relative hidden min-h-[580px] overflow-hidden bg-copy p-10 text-white lg:block">
             <img
               className="absolute inset-0 h-full w-full object-cover opacity-45"
-              src={FEATURED_IMAGES.login}
+              src={LOGIN_IMAGE}
               alt=""
               aria-hidden="true"
             />

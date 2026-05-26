@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import { supabase } from "../supabase/client.js";
-import { FEATURED_IMAGES } from "../data/laGalanaImages.js";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const IMAGE_BASE_PATH = SUPABASE_URL
+  ? `${SUPABASE_URL}/storage/v1/object/public/la-galana`
+  : "/images/la-galana";
+const RESERVATION_IMAGE = `${IMAGE_BASE_PATH}/interior/dormitorio-calido.webp`;
 
 export default function MostrarCalendario({
   showHeading = true,
@@ -112,8 +117,6 @@ export default function MostrarCalendario({
     }
   };
 
-  const reservationImage = FEATURED_IMAGES.reservation;
-
   return (
     <div
       className={`calendar-shell flex w-full flex-col ${
@@ -209,7 +212,7 @@ export default function MostrarCalendario({
             {!showHeading ? (
               <div className="relative h-[200px] overflow-hidden rounded-[1.9rem] border border-white/16 shadow-[0_18px_45px_rgba(79,66,36,0.16)] sm:h-[250px] lg:h-[400px]">
                 <img
-                  src={reservationImage}
+                  src={RESERVATION_IMAGE}
                   alt="Interior acogedor de la casa rural"
                   className="h-full w-full object-cover"
                 />
