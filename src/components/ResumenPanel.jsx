@@ -12,9 +12,9 @@ import {
 
 function crearFechaDesdeSql(fechaSql) {
   if (!fechaSql) return null;
-  const [anio, mes, dia] = String(fechaSql).split("-").map(Number);
-  if (!anio || !mes || !dia) return null;
-  return new Date(anio, mes - 1, dia);
+  const [año, mes, dia] = String(fechaSql).split("-").map(Number);
+  if (!año || !mes || !dia) return null;
+  return new Date(año, mes - 1, dia);
 }
 
 function claveMes(fecha) {
@@ -51,15 +51,15 @@ function obtenerFechaReferenciaReserva(reserva) {
   return crearFechaDesdeSql(reserva.created_at) || crearFechaDesdeSql(reserva.fecha_entrada);
 }
 
-function crearMesesAnio(anio) {
+function crearMesesAño(año) {
   return Array.from({ length: 12 }, (_, index) => {
-    const fecha = new Date(anio, index, 1);
+    const fecha = new Date(año, index, 1);
     return { fecha, etiqueta: obtenerEtiquetaMes(fecha) };
   });
 }
 
-function obtenerAniosDisponibles(reservas) {
-  const anios = new Set([new Date().getFullYear()]);
+function obtenerAñosDisponibles(reservas) {
+  const años = new Set([new Date().getFullYear()]);
 
   reservas.forEach((reserva) => {
     [
@@ -68,12 +68,12 @@ function obtenerAniosDisponibles(reservas) {
       crearFechaDesdeSql(reserva.fecha_salida),
     ].forEach((fecha) => {
       if (fecha && !Number.isNaN(fecha.getTime())) {
-        anios.add(fecha.getFullYear());
+        años.add(fecha.getFullYear());
       }
     });
   });
 
-  return [...anios].sort((a, b) => b - a);
+  return [...años].sort((a, b) => b - a);
 }
 
 function crearSerieMensual({ registros, selector, meses }) {
@@ -282,28 +282,28 @@ export default function ResumenPanel({
   temporadas = [],
   cargando = false,
 }) {
-  const aniosDisponibles = useMemo(() => obtenerAniosDisponibles(reservas), [reservas]);
-  const [anioSeleccionado, setAnioSeleccionado] = useState(new Date().getFullYear());
+  const añosDisponibles = useMemo(() => obtenerAñosDisponibles(reservas), [reservas]);
+  const [añoSeleccionado, setAñoSeleccionado] = useState(new Date().getFullYear());
 
   const resumen = useMemo(() => {
-    const meses = crearMesesAnio(anioSeleccionado);
-    const reservasDelAnio = reservas.filter((reserva) => {
+    const meses = crearMesesAño(añoSeleccionado);
+    const reservasDelAño = reservas.filter((reserva) => {
       const fechaReferencia = obtenerFechaReferenciaReserva(reserva);
-      return fechaReferencia?.getFullYear() === anioSeleccionado;
+      return fechaReferencia?.getFullYear() === añoSeleccionado;
     });
 
     const ingresosMensuales = crearSerieMensual({
-      registros: reservasDelAnio,
+      registros: reservasDelAño,
       meses,
       selector: (reserva) => Number(reserva.precio_total || 0),
     });
     const extrasMensuales = crearSerieMensual({
-      registros: reservasDelAnio,
+      registros: reservasDelAño,
       meses,
       selector: (reserva) => Number(reserva.precio_extras || 0),
     });
     const reservasMensuales = crearSerieMensual({
-      registros: reservasDelAnio,
+      registros: reservasDelAño,
       meses,
       selector: () => 1,
     });
@@ -312,18 +312,18 @@ export default function ResumenPanel({
       const reservasDelMes = reservasMensuales[index] || 0;
       return reservasDelMes > 0 ? ingreso / reservasDelMes : 0;
     });
-    const nochesPorReserva = reservasDelAnio.map((reserva) =>
+    const nochesPorReserva = reservasDelAño.map((reserva) =>
       calcularNoches(crearFechaDesdeSql(reserva.fecha_entrada), crearFechaDesdeSql(reserva.fecha_salida))
     );
 
-    const ingresosTotales = reservasDelAnio.reduce((total, reserva) => total + Number(reserva.precio_total || 0), 0);
-    const extrasTotales = reservasDelAnio.reduce((total, reserva) => total + Number(reserva.precio_extras || 0), 0);
-    const ticketPromedio = reservasDelAnio.length > 0 ? ingresosTotales / reservasDelAnio.length : 0;
+    const ingresosTotales = reservasDelAño.reduce((total, reserva) => total + Number(reserva.precio_total || 0), 0);
+    const extrasTotales = reservasDelAño.reduce((total, reserva) => total + Number(reserva.precio_extras || 0), 0);
+    const ticketPromedio = reservasDelAño.length > 0 ? ingresosTotales / reservasDelAño.length : 0;
     const ocupacionMedia = ocupacionMensual.reduce((total, valor) => total + valor, 0) / ocupacionMensual.length;
 
     return {
       meses,
-      reservasDelAnio,
+      reservasDelAño,
       ingresosMensuales,
       extrasMensuales,
       reservasMensuales,
@@ -335,7 +335,7 @@ export default function ResumenPanel({
       ticketPromedio,
       ticketPromedioMensual,
     };
-  }, [anioSeleccionado, reservas]);
+  }, [añoSeleccionado, reservas]);
 
   if (cargando) {
     return (
@@ -365,12 +365,12 @@ export default function ResumenPanel({
                 Año mostrado
                 <select
                   className="h-12 rounded-md border border-brand/16 bg-white px-4 text-sm font-bold normal-case tracking-normal text-copy outline-none transition focus:border-brand"
-                  value={anioSeleccionado}
-                  onChange={(event) => setAnioSeleccionado(Number(event.target.value))}
+                  value={añoSeleccionado}
+                  onChange={(event) => setAñoSeleccionado(Number(event.target.value))}
                 >
-                  {aniosDisponibles.map((anio) => (
-                    <option key={anio} value={anio}>
-                      {anio}
+                  {añosDisponibles.map((año) => (
+                    <option key={año} value={año}>
+                      {año}
                     </option>
                   ))}
                 </select>
@@ -381,24 +381,24 @@ export default function ResumenPanel({
               <TarjetaMetrica
                 titulo="Ingresos totales"
                 dato={formatearMoneda(resumen.ingresosTotales)}
-                detalle={`Suma de las reservas registradas en ${anioSeleccionado}.`}
+                detalle={`Suma de las reservas registradas en ${añoSeleccionado}.`}
                 icono="coin"
               />
               <TarjetaMetrica
                 titulo="Ocupación media"
                 dato={formatearPorcentaje(resumen.ocupacionMedia || 0)}
-                detalle={`Media mensual de ocupaci�n durante ${anioSeleccionado}.`}
+                detalle={`Media mensual de ocupación durante ${añoSeleccionado}.`}
                 icono="bed"
               />
               <TarjetaMetrica
                 titulo="Precio promedio"
                 dato={formatearMoneda(resumen.ticketPromedio)}
-                detalle={`Media sobre ${formatearNumero(resumen.reservasDelAnio.length)} reservas del año.`}
+                detalle={`Media sobre ${formatearNumero(resumen.reservasDelAño.length)} reservas del año.`}
                 icono="ticket"
               />
               <TarjetaMetrica
                 titulo="Reservas recibidas"
-                dato={formatearNumero(resumen.reservasDelAnio.length)}
+                dato={formatearNumero(resumen.reservasDelAño.length)}
                 detalle={`${formatearNumero(resumen.nochesPorReserva.reduce((total, valor) => total + valor, 0))} noches acumuladas.`}
                 icono="spark"
               />
@@ -407,7 +407,7 @@ export default function ResumenPanel({
             <div className="mt-6 grid gap-6 xl:grid-cols-3">
               <TarjetaGraficoLinea
                 titulo="Ingresos y extras"
-                subtitulo={`Evoluci�n mensual de la facturaci�n y de los servicios extra durante ${anioSeleccionado}.`}
+                subtitulo={`Evolución mensual de la facturación y de los servicios extra durante ${añoSeleccionado}.`}
                 etiquetas={resumen.meses.map((mes) => mes.etiqueta)}
                 series={[
                   { label: "Ingresos", values: resumen.ingresosMensuales, color: "#b89458" },
@@ -418,7 +418,7 @@ export default function ResumenPanel({
 
               <TarjetaGraficoLinea
                 titulo="Reservas mensuales"
-                subtitulo={`Cantidad de reservas creadas cada mes de ${anioSeleccionado}.`}
+                subtitulo={`Cantidad de reservas creadas cada mes de ${añoSeleccionado}.`}
                 etiquetas={resumen.meses.map((mes) => mes.etiqueta)}
                 series={[{ label: "Reservas", values: resumen.reservasMensuales, color: "#7f934f" }]}
                 formatearValor={formatearNumero}
@@ -427,7 +427,7 @@ export default function ResumenPanel({
 
               <TarjetaGraficoLinea
                 titulo="Ocupación"
-                subtitulo={`Porcentaje de d�as ocupados en cada mes de ${anioSeleccionado}.`}
+                subtitulo={`Porcentaje de días ocupados en cada mes de ${añoSeleccionado}.`}
                 etiquetas={resumen.meses.map((mes) => mes.etiqueta)}
                 series={[{ label: "Ocupación", values: resumen.ocupacionMensual, color: "#b89458" }]}
                 formatearValor={formatearPorcentaje}

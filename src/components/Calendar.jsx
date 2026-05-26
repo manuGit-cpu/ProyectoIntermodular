@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import { supabase } from "../supabase/client.js";
+import { mostrarAlertaApp } from "../utils/appAlert.js";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const IMAGE_BASE_PATH = SUPABASE_URL
