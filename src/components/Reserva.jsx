@@ -179,6 +179,11 @@ function Reserva() {
       .limit(1);
 
     if (error) {
+      const mensaje = String(error.message || "").toLowerCase();
+      if (mensaje.includes("auth session missing") || mensaje.includes("session missing")) {
+        return null;
+      }
+
       throw error;
     }
 
@@ -187,16 +192,7 @@ function Reserva() {
 
   const obtenerUsuarioActual = async () => {
     const { data: sessionData } = await supabase.auth.getSession();
-    if (sessionData?.session?.user) {
-      return sessionData.session.user;
-    }
-
-    const { data: userData, error } = await supabase.auth.getUser();
-    if (error) {
-      throw error;
-    }
-
-    return userData?.user ?? null;
+    return sessionData?.session?.user ?? null;
   };
 
   const abrirModalExtras = () => {
@@ -302,15 +298,6 @@ function Reserva() {
     try {
       const user = await obtenerUsuarioActual();
 
-      if (!user?.id) {
-        mostrarAlertaApp({
-          title: "Inicia sesión para reservar",
-          message: "Necesitas acceder con tu cuenta para que la reserva quede asociada a tu perfil.",
-          variant: "warning",
-        });
-        return;
-      }
-
       const fechasOcupadas = await hayReservaEnFechas(
         selectedDates[0],
         selectedDates[1],
@@ -334,7 +321,7 @@ function Reserva() {
       const { data: reservaGuardada, error: errorReserva } = await supabase
         .from("reservas")
         .insert({
-          usuario_id: user.id,
+          usuario_id: user?.id ?? null,
           nombre_cliente: reservationData.name,
           email_cliente: reservationData.email,
           telefono_cliente: reservationData.phone || null,
