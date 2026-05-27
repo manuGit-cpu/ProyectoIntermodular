@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { jsPDF } from "jspdf";
 import BarraNavegacion from "../../components/NavBar";
 import PiePagina from "../../layouts/Footer";
@@ -101,6 +101,33 @@ function formatearFechaInput(fechaValor) {
   return fecha.toISOString().slice(0, 10);
 }
 
+function crearFechaLocal(fechaValor) {
+  if (!fechaValor) return null;
+  const [year, month, day] = String(fechaValor).split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+}
+
+function obtenerEstadoReserva(reserva) {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const entrada = crearFechaLocal(reserva.fecha_entrada);
+  const salida = crearFechaLocal(reserva.fecha_salida);
+
+  if (entrada && salida && entrada <= hoy && salida >= hoy) return "en_curso";
+  if (entrada && entrada > hoy) return "proxima";
+  if (salida && salida < hoy) return "pasada";
+  return "sin_fecha";
+}
+
+function obtenerEtiquetaEstadoReserva(estado) {
+  if (estado === "en_curso") return "En curso";
+  if (estado === "proxima") return "Próxima";
+  if (estado === "pasada") return "Pasada";
+  return "Sin fecha";
+}
+
 function obtenerEstadoUsuario(reservaUsuario = {}, usuario = {}) {
   const tieneActividad = Number(reservaUsuario.reservas || 0) > 0;
   const fechaAlta = usuario.created_at ? new Date(usuario.created_at) : null;
@@ -123,6 +150,8 @@ const MESES_TEMPORADA = [
   { valor: 11, etiqueta: "Noviembre" },
   { valor: 12, etiqueta: "Diciembre" },
 ];
+
+const RESERVAS_POR_PAGINA = 6;
 
 function Icono({ name, className = "h-5 w-5" }) {
   const paths = {
@@ -243,6 +272,13 @@ export default function DashboardShell({ vista = "resumen" }) {
   const [reservaEnEdicion, setReservaEnEdicion] = useState(null);
   const [mostrarModalExtra, setMostrarModalExtra] = useState(false);
   const [extraEnEdicion, setExtraEnEdicion] = useState(null);
+  const [paginaReservas, setPaginaReservas] = useState(1);
+  const [filtroReservas, setFiltroReservas] = useState({
+    busqueda: "",
+    estado: "todas",
+    desde: "",
+    hasta: "",
+  });
   const [filtroUsuarios, setFiltroUsuarios] = useState({
     busqueda: "",
     rol: "todos",
@@ -290,12 +326,46 @@ export default function DashboardShell({ vista = "resumen" }) {
     () => [...temporadas].sort((a, b) => Number(a.mes_inicio || 0) - Number(b.mes_inicio || 0)),
     [temporadas]
   );
-  const reservasRecientes = useMemo(
+  const reservasOrdenadas = useMemo(
     () =>
       [...reservas]
-        .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
-        .slice(0, 6),
+        .sort((a, b) => new Date(b.fecha_entrada || b.created_at || 0) - new Date(a.fecha_entrada || a.created_at || 0)),
     [reservas]
+  );
+  const reservasFiltradas = useMemo(() => {
+    const busqueda = filtroReservas.busqueda.trim().toLowerCase();
+    const fechaDesde = crearFechaLocal(filtroReservas.desde);
+    const fechaHasta = crearFechaLocal(filtroReservas.hasta);
+
+    return reservasOrdenadas.filter((reserva) => {
+      const estado = obtenerEstadoReserva(reserva);
+      const entrada = crearFechaLocal(reserva.fecha_entrada);
+      const salida = crearFechaLocal(reserva.fecha_salida);
+      const coincideBusqueda =
+        !busqueda ||
+        [reserva.nombre_cliente, reserva.email_cliente, reserva.telefono_cliente, reserva.id]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(busqueda);
+      const coincideEstado = filtroReservas.estado === "todas" || estado === filtroReservas.estado;
+      const coincideDesde = !fechaDesde || (salida && salida >= fechaDesde);
+      const coincideHasta = !fechaHasta || (entrada && entrada <= fechaHasta);
+
+      return coincideBusqueda && coincideEstado && coincideDesde && coincideHasta;
+    });
+  }, [filtroReservas.busqueda, filtroReservas.desde, filtroReservas.estado, filtroReservas.hasta, reservasOrdenadas]);
+  const totalPaginasReservas = Math.max(1, Math.ceil(reservasFiltradas.length / RESERVAS_POR_PAGINA));
+  const paginaReservasSegura = Math.min(paginaReservas, totalPaginasReservas);
+  const reservasPagina = useMemo(() => {
+    const inicio = (paginaReservasSegura - 1) * RESERVAS_POR_PAGINA;
+    return reservasFiltradas.slice(inicio, inicio + RESERVAS_POR_PAGINA);
+  }, [paginaReservasSegura, reservasFiltradas]);
+  const inicioReservas = reservasFiltradas.length === 0 ? 0 : (paginaReservasSegura - 1) * RESERVAS_POR_PAGINA + 1;
+  const finReservas = Math.min(paginaReservasSegura * RESERVAS_POR_PAGINA, reservasFiltradas.length);
+  const totalIngresosReservasFiltradas = reservasFiltradas.reduce(
+    (total, reserva) => total + Number(reserva.precio_total || 0),
+    0,
   );
   const estadisticasTemporadas = useMemo(
     () => ({
@@ -434,6 +504,36 @@ export default function DashboardShell({ vista = "resumen" }) {
     mostrarAlertaApp({
       title: nuevoEstado ? "Temporada activada" : "Temporada desactivada",
       message: `${temporada.nombre} ya se ha actualizado correctamente.`,
+      variant: "success",
+    });
+    recargar();
+  }
+
+  async function manejarEliminarTemporada(temporada) {
+    if (!supabase || !temporada) return;
+
+    const confirmado = window.confirm(`Eliminar la temporada "${temporada.nombre}"?`);
+    if (!confirmado) return;
+
+    setSaving(true);
+    const { error } = await supabase
+      .from("temporadas_precios")
+      .delete()
+      .eq("id", temporada.id);
+    setSaving(false);
+
+    if (error) {
+      mostrarAlertaApp({
+        title: "No se pudo eliminar la temporada",
+        message: error.message,
+        variant: "warning",
+      });
+      return;
+    }
+
+    mostrarAlertaApp({
+      title: "Temporada eliminada",
+      message: `${temporada.nombre} se ha eliminado de la base de datos.`,
       variant: "success",
     });
     recargar();
@@ -596,6 +696,26 @@ export default function DashboardShell({ vista = "resumen" }) {
     });
   }
 
+  function manejarCambioFiltroReservas(event) {
+    const { name, value } = event.target;
+
+    setPaginaReservas(1);
+    setFiltroReservas((actual) => ({
+      ...actual,
+      [name]: value,
+    }));
+  }
+
+  function limpiarFiltrosReservas() {
+    setPaginaReservas(1);
+    setFiltroReservas({
+      busqueda: "",
+      estado: "todas",
+      desde: "",
+      hasta: "",
+    });
+  }
+
   async function manejarGuardarUsuario(event) {
     event.preventDefault();
 
@@ -640,7 +760,7 @@ export default function DashboardShell({ vista = "resumen" }) {
 
       if (error) {
         mostrarAlertaApp({
-          title: "No se pudo enviar la invitacion",
+          title: "No se pudo enviar la invitación",
           message: error.message,
           variant: "warning",
         });
@@ -700,12 +820,36 @@ export default function DashboardShell({ vista = "resumen" }) {
       return;
     }
 
-    const { error } = await supabase.from("usuarios").delete().eq("id", usuario.id);
+    setSaving(true);
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
 
-    if (error) {
+    if (sessionError || !accessToken) {
+      setSaving(false);
+      mostrarAlertaApp({
+        title: "Sesión no encontrada",
+        message: "Inicia sesión como administrador para eliminar usuarios.",
+        variant: "warning",
+      });
+      return;
+    }
+
+    const response = await fetch("/api/delete-user", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: usuario.id }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    setSaving(false);
+
+    if (!response.ok) {
       mostrarAlertaApp({
         title: "No se pudo eliminar el usuario",
-        message: error.message,
+        message: result.error || "No se pudo eliminar el usuario de Supabase Auth.",
         variant: "warning",
       });
       return;
@@ -713,7 +857,7 @@ export default function DashboardShell({ vista = "resumen" }) {
 
     mostrarAlertaApp({
       title: "Usuario eliminado",
-      message: "El perfil se ha quitado correctamente.",
+      message: "El usuario se ha eliminado de Auth y de la base de datos.",
       variant: "success",
     });
     recargar();
@@ -1200,7 +1344,7 @@ export default function DashboardShell({ vista = "resumen" }) {
 
     if (error) {
       mostrarAlertaApp({
-        title: "No se subio la imagen",
+        title: "No se subió la imagen",
         message: error.message,
         variant: "warning",
       });
@@ -1245,21 +1389,85 @@ export default function DashboardShell({ vista = "resumen" }) {
         )}
 
         {vista === "reservas" && (
-          <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
-            <article className="min-w-0 rounded-[1.7rem] border border-brand/10 bg-white p-4 shadow-[0_14px_34px_rgba(44,44,44,0.06)] sm:p-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+            <article className="min-w-0 rounded-lg border border-brand/10 bg-white p-5 shadow-[0_18px_48px_rgba(44,44,44,0.08)] sm:p-7">
+              <div className="flex flex-col gap-5 border-b border-brand/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Reservas</p>
-                  <h2 className="mt-2 font-display text-3xl leading-tight text-copy sm:text-4xl">Actividad reciente</h2>
+                  <h2 className="mt-2 font-display text-3xl leading-tight text-copy sm:text-4xl">Gestión de reservas</h2>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+                    Filtra, revisa y administra las reservas sin cargar toda la lista de golpe.
+                  </p>
                 </div>
-                <a href="/#reserva" className="inline-flex w-full items-center justify-center rounded-md border border-brand/12 bg-surface px-4 py-3 text-sm font-bold text-brand-dark no-underline transition hover:bg-brand/8 sm:w-auto sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+                <a href="/#reserva" className="inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-brand/16 bg-brand px-5 py-3 text-sm font-bold text-white no-underline transition hover:bg-brand-dark sm:w-auto">
                   Ver formulario
                 </a>
               </div>
 
+              <div className="mt-6 grid gap-3 rounded-lg border border-brand/10 bg-surface p-4 lg:grid-cols-[minmax(220px,1fr)_170px_160px_160px_auto] lg:items-end">
+                <label className="grid gap-2 text-sm font-semibold text-copy">
+                  Buscar
+                  <input
+                    name="busqueda"
+                    value={filtroReservas.busqueda}
+                    onChange={manejarCambioFiltroReservas}
+                    className="h-11 rounded-md border border-brand/12 bg-white px-4 text-sm font-normal outline-none transition focus:border-brand"
+                    placeholder="Cliente, email o teléfono"
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold text-copy">
+                  Estado
+                  <select
+                    name="estado"
+                    value={filtroReservas.estado}
+                    onChange={manejarCambioFiltroReservas}
+                    className="h-11 rounded-md border border-brand/12 bg-white px-4 text-sm font-normal outline-none transition focus:border-brand"
+                  >
+                    <option value="todas">Todas</option>
+                    <option value="proxima">Próximas</option>
+                    <option value="en_curso">En curso</option>
+                    <option value="pasada">Pasadas</option>
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-semibold text-copy">
+                  Desde
+                  <input
+                    name="desde"
+                    type="date"
+                    value={filtroReservas.desde}
+                    onChange={manejarCambioFiltroReservas}
+                    className="h-11 rounded-md border border-brand/12 bg-white px-3 text-sm font-normal outline-none transition focus:border-brand"
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold text-copy">
+                  Hasta
+                  <input
+                    name="hasta"
+                    type="date"
+                    value={filtroReservas.hasta}
+                    onChange={manejarCambioFiltroReservas}
+                    className="h-11 rounded-md border border-brand/12 bg-white px-3 text-sm font-normal outline-none transition focus:border-brand"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={limpiarFiltrosReservas}
+                  className="inline-flex h-11 items-center justify-center rounded-md border border-brand/12 bg-white px-4 text-sm font-bold text-copy transition hover:bg-brand/8"
+                >
+                  Limpiar
+                </button>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-2 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                  Mostrando {inicioReservas}-{finReservas} de {reservasFiltradas.length} reservas filtradas
+                </p>
+                <p className="font-semibold text-copy">{RESERVAS_POR_PAGINA} reservas por página</p>
+              </div>
+
               <div className="mt-6 grid gap-4 md:hidden">
-                {reservasRecientes.length > 0 ? (
-                  reservasRecientes.map((reserva) => (
+                {reservasPagina.length > 0 ? (
+                  reservasPagina.map((reserva) => (
                     <article key={reserva.id} className="rounded-[1.1rem] border border-brand/10 bg-surface p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -1318,52 +1526,64 @@ export default function DashboardShell({ vista = "resumen" }) {
                 )}
               </div>
 
-              <div className="mt-6 hidden overflow-x-auto rounded-[1.2rem] border border-brand/8 md:block">
-                <table className="min-w-[860px] divide-y divide-brand/10">
-                  <thead className="bg-surface text-left text-xs font-bold uppercase tracking-[0.18em] text-muted">
+              <div className="mt-6 hidden overflow-x-auto rounded-lg border border-brand/10 md:block">
+                <table className="w-full min-w-[980px] table-fixed divide-y divide-brand/10">
+                  <thead className="bg-[#f7f3ea] text-left text-xs font-bold uppercase tracking-[0.18em] text-muted">
                     <tr>
-                      <th className="px-4 py-3">Cliente</th>
-                      <th className="px-4 py-3">Fechas</th>
-                      <th className="px-4 py-3">Personas</th>
-                      <th className="px-4 py-3">Total</th>
-                      <th className="px-4 py-3">Acciones</th>
+                      <th className="w-[27%] px-5 py-4">Cliente</th>
+                      <th className="w-[21%] px-5 py-4">Fechas</th>
+                      <th className="w-[12%] px-5 py-4">Estado</th>
+                      <th className="w-[10%] px-5 py-4">Personas</th>
+                      <th className="w-[10%] px-5 py-4">Total</th>
+                      <th className="w-[20%] px-5 py-4 text-right">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand/8 bg-white">
-                    {reservasRecientes.length > 0 ? (
-                      reservasRecientes.map((reserva) => (
-                        <tr key={reserva.id} className="text-sm">
-                          <td className="px-4 py-4">
-                            <p className="font-bold text-copy">{reserva.nombre_cliente || "Sin nombre"}</p>
-                            <p className="mt-1 text-xs text-muted">{reserva.email_cliente || "Sin email"}</p>
+                    {reservasPagina.length > 0 ? (
+                      reservasPagina.map((reserva) => (
+                        <tr key={reserva.id} className="text-sm transition hover:bg-surface/70">
+                          <td className="px-5 py-5">
+                            <p className="truncate font-bold text-copy">{reserva.nombre_cliente || "Sin nombre"}</p>
+                            <p className="mt-1 truncate text-xs text-muted">{reserva.email_cliente || "Sin email"}</p>
                           </td>
-                          <td className="px-4 py-4 text-muted">
-                            {obtenerFechaLegible(reserva.fecha_entrada)} - {obtenerFechaLegible(reserva.fecha_salida)}
+                          <td className="px-5 py-5 font-semibold text-muted">
+                            <span className="block truncate">
+                              {obtenerFechaLegible(reserva.fecha_entrada)} - {obtenerFechaLegible(reserva.fecha_salida)}
+                            </span>
                           </td>
-                          <td className="px-4 py-4 font-semibold text-copy">{reserva.numero_personas || 0}</td>
-                          <td className="px-4 py-4 font-semibold text-copy">{formatearMoneda(reserva.precio_total)}</td>
-                          <td className="px-4 py-4">
-                            <div className="flex flex-wrap items-center gap-2">
+                          <td className="px-5 py-5">
+                            <span className="inline-flex rounded-full bg-brand/10 px-3 py-1 text-xs font-bold text-brand-dark">
+                              {obtenerEtiquetaEstadoReserva(obtenerEstadoReserva(reserva))}
+                            </span>
+                          </td>
+                          <td className="px-5 py-5">
+                            <span className="inline-flex rounded-full bg-surface px-3 py-1 text-xs font-bold text-copy">
+                              {reserva.numero_personas || 0} pers.
+                            </span>
+                          </td>
+                          <td className="px-5 py-5 font-bold text-copy">{formatearMoneda(reserva.precio_total)}</td>
+                          <td className="px-5 py-5 text-right">
+                            <div className="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
                               <button
                                 type="button"
-                                className="inline-flex items-center justify-center rounded-md border border-brand/20 bg-brand/8 px-3 py-2 text-xs font-bold text-brand-dark transition hover:bg-brand/14"
+                                className="inline-flex h-8 items-center justify-center rounded-md border border-brand/20 bg-brand/8 px-2.5 text-xs font-bold text-brand-dark transition hover:bg-brand/14"
                                 onClick={() => generarPdfReserva(reserva)}
                               >
-                                Imprimir PDF
+                                PDF
                               </button>
                               <button
                                 type="button"
-                                className="inline-flex items-center justify-center rounded-md border border-brand/12 bg-surface px-3 py-2 text-xs font-bold text-copy transition hover:bg-brand/8"
+                                className="inline-flex h-8 items-center justify-center rounded-md border border-brand/12 bg-surface px-2.5 text-xs font-bold text-copy transition hover:bg-brand/8"
                                 onClick={() => abrirModalNuevaReserva(reserva)}
                               >
                                 Editar
                               </button>
                               <button
                                 type="button"
-                                className="inline-flex items-center justify-center rounded-md border border-red-700/12 bg-red-700/6 px-3 py-2 text-xs font-bold text-red-800 transition hover:bg-red-700/12"
+                                className="inline-flex h-8 items-center justify-center rounded-md border border-red-700/12 bg-red-700/6 px-2.5 text-xs font-bold text-red-800 transition hover:bg-red-700/12"
                                 onClick={() => manejarEliminarReserva(reserva)}
                               >
-                                Eliminar
+                                Borrar
                               </button>
                             </div>
                           </td>
@@ -1371,7 +1591,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                       ))
                     ) : (
                       <tr>
-                        <td className="px-4 py-8 text-sm text-muted" colSpan={5}>
+                        <td className="px-5 py-10 text-sm text-muted" colSpan={6}>
                           Todavía no hay reservas registradas.
                         </td>
                       </tr>
@@ -1379,19 +1599,47 @@ export default function DashboardShell({ vista = "resumen" }) {
                   </tbody>
                 </table>
               </div>
+
+              <div className="mt-5 flex flex-col gap-3 border-t border-brand/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm font-semibold text-muted">
+                  Página {paginaReservasSegura} de {totalPaginasReservas}
+                </p>
+                <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <button
+                    type="button"
+                    disabled={paginaReservasSegura <= 1}
+                    onClick={() => setPaginaReservas((pagina) => Math.max(1, pagina - 1))}
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-md border border-brand/12 bg-white px-4 text-sm font-bold text-copy transition hover:bg-brand/8 disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    type="button"
+                    disabled={paginaReservasSegura >= totalPaginasReservas}
+                    onClick={() => setPaginaReservas((pagina) => Math.min(totalPaginasReservas, pagina + 1))}
+                    className="inline-flex min-h-[40px] items-center justify-center rounded-md border border-brand/12 bg-white px-4 text-sm font-bold text-copy transition hover:bg-brand/8 disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
             </article>
 
-            <aside className="rounded-[1.7rem] border border-brand/10 bg-[linear-gradient(135deg,#f7f3ea_0%,#efe3cd_100%)] p-5 shadow-[0_14px_34px_rgba(44,44,44,0.06)]">
+            <aside className="rounded-lg border border-brand/10 bg-[linear-gradient(135deg,#f7f3ea_0%,#efe3cd_100%)] p-5 shadow-[0_18px_48px_rgba(44,44,44,0.08)] xl:sticky xl:top-28">
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand-dark">Resumen rápido</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                <div className="rounded-[1.1rem] bg-white/75 p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Reservas</p>
+                <div className="rounded-md bg-white/80 p-4 shadow-[inset_0_0_0_1px_rgba(194,168,120,0.08)]">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Reservas totales</p>
                   <p className="mt-1 font-display text-3xl text-copy">{reservas.length}</p>
                 </div>
-                <div className="rounded-[1.1rem] bg-white/75 p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Total ingresos</p>
+                <div className="rounded-md bg-white/80 p-4 shadow-[inset_0_0_0_1px_rgba(194,168,120,0.08)]">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Filtradas</p>
+                  <p className="mt-1 font-display text-3xl text-copy">{reservasFiltradas.length}</p>
+                </div>
+                <div className="rounded-md bg-white/80 p-4 shadow-[inset_0_0_0_1px_rgba(194,168,120,0.08)]">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Ingresos filtrados</p>
                   <p className="mt-1 font-display text-3xl text-copy">
-                    {formatearMoneda(reservas.reduce((total, reserva) => total + Number(reserva.precio_total || 0), 0))}
+                    {formatearMoneda(totalIngresosReservasFiltradas)}
                   </p>
                 </div>
               </div>
@@ -1520,7 +1768,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                     <label className="grid min-w-0 gap-2 text-sm font-semibold">
                       Imagen
                       <input
-                        className="min-w-0 rounded-md border border-brand/16 bg-white px-3 py-2 font-normal outline-none file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-bold file:text-white"
+                        className="h-12 min-w-0 rounded-md border border-brand/16 bg-white px-3 py-1 font-normal outline-none file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-bold file:text-white"
                         type="file"
                         accept="image/*"
                         onChange={(event) => setImageForm((current) => ({ ...current, file: event.target.files?.[0] || null }))}
@@ -1528,9 +1776,9 @@ export default function DashboardShell({ vista = "resumen" }) {
                     </label>
 
                     <label className="grid min-w-0 gap-2 text-sm font-semibold">
-                      Titulo
+                      Título
                       <input
-                        className="min-w-0 rounded-md border border-brand/16 bg-white px-3 py-2 font-normal outline-none focus:border-brand"
+                        className="h-12 min-w-0 rounded-md border border-brand/16 bg-white px-3 font-normal outline-none focus:border-brand"
                         value={imageForm.title}
                         onChange={(event) => setImageForm((current) => ({ ...current, title: event.target.value }))}
                         placeholder="Dormitorio principal"
@@ -1621,7 +1869,7 @@ export default function DashboardShell({ vista = "resumen" }) {
               <article className="rounded-[1.4rem] border border-brand/10 bg-surface p-5">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Temporadas activas</p>
                 <p className="mt-3 font-display text-4xl text-copy">{estadisticasTemporadas.activas}</p>
-                <p className="mt-2 text-sm text-muted">Disponibles para el calculo de reservas.</p>
+                <p className="mt-2 text-sm text-muted">Disponibles para el cálculo de reservas.</p>
               </article>
 
               <article className="rounded-[1.4rem] border border-brand/10 bg-surface p-5">
@@ -1650,7 +1898,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                       <th className="px-5 py-4">Periodo</th>
                       <th className="px-5 py-4">Precio</th>
                       <th className="px-5 py-4">Estado</th>
-                      <th className="px-5 py-4">Accion</th>
+                      <th className="px-5 py-4">Acción</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand/8 bg-white">
@@ -1675,7 +1923,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                             </span>
                           </td>
                           <td className="px-5 py-4">
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
                               <button
                                 type="button"
                                 className="inline-flex items-center gap-2 rounded-full border border-brand/12 bg-surface px-3 py-2 text-xs font-bold text-copy transition hover:bg-brand/8"
@@ -1684,20 +1932,29 @@ export default function DashboardShell({ vista = "resumen" }) {
                                 <Icono name="pencil" className="h-4 w-4" />
                                 Editar
                               </button>
-                            <button
-                              type="button"
-                              className={`relative inline-flex h-8 w-14 items-center rounded-full transition ${
-                                temporada.activo ? "bg-brand" : "bg-zinc-300"
-                              }`}
-                              aria-pressed={temporada.activo}
-                              aria-label={`${temporada.activo ? "Desactivar" : "Activar"} ${temporada.nombre}`}
-                              onClick={() => alternarEstadoTemporada(temporada)}
+                              <button
+                                type="button"
+                                className={`relative inline-flex h-8 w-14 items-center rounded-full transition ${
+                                  temporada.activo ? "bg-brand" : "bg-zinc-300"
+                                }`}
+                                aria-pressed={temporada.activo}
+                                aria-label={`${temporada.activo ? "Desactivar" : "Activar"} ${temporada.nombre}`}
+                                onClick={() => alternarEstadoTemporada(temporada)}
                               >
                                 <span
                                   className={`inline-block h-6 w-6 rounded-full bg-white shadow-sm transition ${
                                     temporada.activo ? "translate-x-7" : "translate-x-1"
                                   }`}
                                 />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={saving}
+                                className="inline-flex items-center gap-2 rounded-full border border-red-700/12 bg-red-700/6 px-3 py-2 text-xs font-bold text-red-800 transition hover:bg-red-700/12 disabled:cursor-not-allowed disabled:opacity-60"
+                                onClick={() => manejarEliminarTemporada(temporada)}
+                              >
+                                <Icono name="trash" className="h-4 w-4" />
+                                Eliminar
                               </button>
                             </div>
                           </td>
@@ -1814,6 +2071,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                                 </button>
                                 <button
                                   type="button"
+                                  disabled={saving}
                                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-700/12 bg-red-700/6 text-red-800 transition hover:bg-red-700/12"
                                   onClick={() => manejarEliminarUsuario(usuario)}
                                   aria-label={`Eliminar ${usuario.nombre || "usuario"}`}
@@ -2379,7 +2637,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                     className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-brand/20 bg-brand px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-dark disabled:opacity-60"
                   >
                     <Icono name={usuarioEnEdicion ? "pencil" : "users"} className="h-4 w-4" />
-                    {usuarioEnEdicion ? "Guardar cambios" : "Enviar invitacion"}
+                    {usuarioEnEdicion ? "Guardar cambios" : "Enviar invitación"}
                   </button>
                   <button
                     type="button"

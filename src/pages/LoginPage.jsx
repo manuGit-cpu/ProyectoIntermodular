@@ -20,14 +20,18 @@ function esEmailValido(value) {
 }
 
 async function validarPerfilUsuario(usuario) {
-  if (!supabase || !usuario?.id) {
+  if (!supabase || (!usuario?.id && !usuario?.email)) {
     return false;
   }
+
+  const filtros = [];
+  if (usuario.id) filtros.push(`id.eq.${usuario.id}`);
+  if (usuario.email) filtros.push(`email.eq.${usuario.email}`);
 
   const { data: perfilExistente, error } = await supabase
     .from("usuarios")
     .select("id")
-    .or(`id.eq.${usuario.id}${usuario.email ? `,email.eq.${usuario.email}` : ""}`)
+    .or(filtros.join(","))
     .limit(1)
     .maybeSingle();
 
@@ -36,6 +40,92 @@ async function validarPerfilUsuario(usuario) {
   }
 
   return Boolean(perfilExistente);
+}
+
+async function crearPerfilUsuario(usuario, { nombre, rol = "cliente" } = {}) {
+  if (!supabase || !usuario?.id || !usuario?.email) {
+    throw new Error("No se pudo identificar el usuario creado.");
+  }
+
+  const filtros = [`id.eq.${usuario.id}`, `email.eq.${usuario.email}`];
+  const { data: perfilExistente, error: errorPerfil } = await supabase
+    .from("usuarios")
+    .select("id")
+    .or(filtros.join(","))
+    .limit(1)
+    .maybeSingle();
+
+  if (errorPerfil) throw errorPerfil;
+  if (perfilExistente) return perfilExistente;
+
+  const { data: perfilCreado, error } = await supabase
+    .from("usuarios")
+    .insert({
+      id: usuario.id,
+      nombre: nombre || usuario.user_metadata?.nombre || usuario.email,
+      email: usuario.email,
+      telefono: null,
+      rol,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return perfilCreado;
+}
+
+async function crearCuentaClienteDesdeSupabase({ email, password, nombre }) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        nombre,
+        rol: "cliente",
+      },
+    },
+  });
+
+  if (error) throw error;
+
+  if (data.user?.identities?.length === 0) {
+    throw new Error("Ya existe una cuenta con ese email.");
+  }
+
+  if (data.session && data.user) {
+    await crearPerfilUsuario(data.user, { nombre, rol: "cliente" });
+    await supabase.auth.signOut();
+  }
+
+  return { ok: true, userId: data.user?.id };
+}
+
+async function crearCuentaCliente({ email, password, nombre }) {
+  const response = await fetch("/api/create-user", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, nombre }),
+  });
+
+  if (!response.ok) {
+    const textoRespuesta = await response.text().catch(() => "");
+    const esApiNoDisponible = response.status === 404 || textoRespuesta.trim().startsWith("<!doctype");
+
+    if (esApiNoDisponible) {
+      return crearCuentaClienteDesdeSupabase({ email, password, nombre });
+    }
+
+    const payload = (() => {
+      try {
+        return textoRespuesta ? JSON.parse(textoRespuesta) : {};
+      } catch {
+        return {};
+      }
+    })();
+    throw new Error(payload.error || "No se pudo crear la cuenta.");
+  }
+
+  return response.json();
 }
 
 function obtenerMensajeError(error) {
@@ -47,6 +137,14 @@ function obtenerMensajeError(error) {
 
   if (message.toLowerCase().includes("user already registered")) {
     return "Ya existe una cuenta con ese email.";
+  }
+
+  if (message.toLowerCase().includes("password should be at least")) {
+    return `Usa una contraseña de al menos ${PASSWORD_MIN_LENGTH} caracteres.`;
+  }
+
+  if (message.toLowerCase().includes("email not confirmed")) {
+    return "El email todavía no está confirmado. Revisa tu correo y confirma la cuenta antes de iniciar sesión.";
   }
 
   return message || "Revisa el email y la contraseña.";
@@ -133,11 +231,21 @@ function PaginaLogin() {
 
     try {
       if (isRegister) {
-        mostrarAlertaApp({
-          title: "Cuenta no registrada",
-          message: "Esta app no crea usuarios automaticamente. Pide al administrador que cree tu cuenta en Supabase.",
-          variant: "warning",
+        await crearCuentaCliente({
+          email: emailNormalizado,
+          password,
+          nombre: nombreNormalizado,
         });
+
+        setPassword("");
+        setPasswordConfirmation("");
+        setName("");
+        mostrarAlertaApp({
+          title: "Cuenta creada",
+          message: "Tu usuario se ha creado correctamente. Ya puedes iniciar sesion.",
+          variant: "success",
+        });
+        setMode("login");
         return;
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -147,10 +255,18 @@ function PaginaLogin() {
 
         if (error) throw error;
 
-        const perfilExiste = await validarPerfilUsuario({
+        let perfilExiste = await validarPerfilUsuario({
           id: data.user.id,
           email: data.user.email ?? emailNormalizado,
         });
+
+        if (!perfilExiste) {
+          await crearPerfilUsuario(data.user, {
+            nombre: data.user.user_metadata?.nombre || data.user.email || emailNormalizado,
+            rol: data.user.user_metadata?.rol || "cliente",
+          });
+          perfilExiste = true;
+        }
 
         if (!perfilExiste) {
           await supabase.auth.signOut();
