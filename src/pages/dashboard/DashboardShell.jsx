@@ -272,6 +272,7 @@ export default function DashboardShell({ vista = "resumen" }) {
   const [reservaEnEdicion, setReservaEnEdicion] = useState(null);
   const [mostrarModalExtra, setMostrarModalExtra] = useState(false);
   const [extraEnEdicion, setExtraEnEdicion] = useState(null);
+  const [confirmacionEliminacion, setConfirmacionEliminacion] = useState(null);
   const [paginaReservas, setPaginaReservas] = useState(1);
   const [filtroReservas, setFiltroReservas] = useState({
     busqueda: "",
@@ -448,6 +449,69 @@ export default function DashboardShell({ vista = "resumen" }) {
     }),
     [extras]
   );
+  const detalleConfirmacionEliminacion = useMemo(() => {
+    if (!confirmacionEliminacion) return null;
+
+    const { tipo, elemento } = confirmacionEliminacion;
+    if (tipo === "temporada") {
+      return {
+        titulo: "Eliminar temporada",
+        texto: `Estas a punto de eliminar la temporada "${elemento?.nombre || "seleccionada"}".`,
+      };
+    }
+
+    if (tipo === "usuario") {
+      return {
+        titulo: "Eliminar usuario",
+        texto: `Estas a punto de eliminar el usuario "${elemento?.nombre || elemento?.email || "seleccionado"}".`,
+      };
+    }
+
+    if (tipo === "extra") {
+      return {
+        titulo: "Eliminar servicio extra",
+        texto: `Estas a punto de eliminar el servicio extra "${elemento?.nombre || "seleccionado"}".`,
+      };
+    }
+
+    return {
+      titulo: "Eliminar reserva",
+      texto: `Estas a punto de eliminar la reserva de "${elemento?.nombre_cliente || elemento?.email_cliente || "este cliente"}".`,
+    };
+  }, [confirmacionEliminacion]);
+
+  function abrirConfirmacionEliminacion(tipo, elemento) {
+    setConfirmacionEliminacion({ tipo, elemento });
+  }
+
+  function cerrarConfirmacionEliminacion() {
+    if (saving) return;
+    setConfirmacionEliminacion(null);
+  }
+
+  async function confirmarEliminacion() {
+    const confirmacionActual = confirmacionEliminacion;
+    if (!confirmacionActual) return;
+
+    setConfirmacionEliminacion(null);
+
+    if (confirmacionActual.tipo === "temporada") {
+      await manejarEliminarTemporada(confirmacionActual.elemento);
+      return;
+    }
+
+    if (confirmacionActual.tipo === "usuario") {
+      await manejarEliminarUsuario(confirmacionActual.elemento);
+      return;
+    }
+
+    if (confirmacionActual.tipo === "extra") {
+      await manejarEliminarExtra(confirmacionActual.elemento);
+      return;
+    }
+
+    await manejarEliminarReserva(confirmacionActual.elemento);
+  }
 
   function dibujarCabeceraPdf(doc, titulo, subtitulo, numeroPagina) {
     doc.setFillColor(194, 168, 120);
@@ -511,9 +575,6 @@ export default function DashboardShell({ vista = "resumen" }) {
 
   async function manejarEliminarTemporada(temporada) {
     if (!supabase || !temporada) return;
-
-    const confirmado = window.confirm(`Eliminar la temporada "${temporada.nombre}"?`);
-    if (!confirmado) return;
 
     setSaving(true);
     const { error } = await supabase
@@ -808,9 +869,6 @@ export default function DashboardShell({ vista = "resumen" }) {
   async function manejarEliminarUsuario(usuario) {
     if (!usuario) return;
 
-    const confirmado = window.confirm(`Eliminar el usuario "${usuario.nombre || usuario.email}"?`);
-    if (!confirmado) return;
-
     if (!supabase) {
       mostrarAlertaApp({
         title: "Base de datos no disponible",
@@ -985,9 +1043,6 @@ export default function DashboardShell({ vista = "resumen" }) {
   async function manejarEliminarExtra(extra) {
     if (!extra) return;
 
-    const confirmado = window.confirm(`Eliminar el servicio extra "${extra.nombre}"?`);
-    if (!confirmado) return;
-
     if (!supabase) {
       mostrarAlertaApp({
         title: "Base de datos no disponible",
@@ -1158,9 +1213,6 @@ export default function DashboardShell({ vista = "resumen" }) {
 
   async function manejarEliminarReserva(reserva) {
     if (!reserva) return;
-
-    const confirmado = window.confirm(`Eliminar la reserva de "${reserva.nombre_cliente || reserva.email_cliente}"?`);
-    if (!confirmado) return;
 
     if (!supabase) {
       mostrarAlertaApp({
@@ -1511,7 +1563,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                           <button
                             type="button"
                             className="inline-flex min-h-[42px] items-center justify-center rounded-md border border-red-700/12 bg-red-700/6 px-3 py-2 text-xs font-bold text-red-800 transition hover:bg-red-700/12"
-                            onClick={() => manejarEliminarReserva(reserva)}
+                            onClick={() => abrirConfirmacionEliminacion("reserva", reserva)}
                           >
                             Eliminar
                           </button>
@@ -1581,7 +1633,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                               <button
                                 type="button"
                                 className="inline-flex h-8 items-center justify-center rounded-md border border-red-700/12 bg-red-700/6 px-2.5 text-xs font-bold text-red-800 transition hover:bg-red-700/12"
-                                onClick={() => manejarEliminarReserva(reserva)}
+                                onClick={() => abrirConfirmacionEliminacion("reserva", reserva)}
                               >
                                 Borrar
                               </button>
@@ -1951,7 +2003,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                                 type="button"
                                 disabled={saving}
                                 className="inline-flex items-center gap-2 rounded-full border border-red-700/12 bg-red-700/6 px-3 py-2 text-xs font-bold text-red-800 transition hover:bg-red-700/12 disabled:cursor-not-allowed disabled:opacity-60"
-                                onClick={() => manejarEliminarTemporada(temporada)}
+                                onClick={() => abrirConfirmacionEliminacion("temporada", temporada)}
                               >
                                 <Icono name="trash" className="h-4 w-4" />
                                 Eliminar
@@ -2073,7 +2125,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                                   type="button"
                                   disabled={saving}
                                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-700/12 bg-red-700/6 text-red-800 transition hover:bg-red-700/12"
-                                  onClick={() => manejarEliminarUsuario(usuario)}
+                                  onClick={() => abrirConfirmacionEliminacion("usuario", usuario)}
                                   aria-label={`Eliminar ${usuario.nombre || "usuario"}`}
                                 >
                                   <Icono name="trash" className="h-4 w-4" />
@@ -2224,7 +2276,7 @@ export default function DashboardShell({ vista = "resumen" }) {
                               <button
                                 type="button"
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-700/12 bg-red-700/6 text-red-800 transition hover:bg-red-700/12"
-                                onClick={() => manejarEliminarExtra(extra)}
+                                onClick={() => abrirConfirmacionEliminacion("extra", extra)}
                                 aria-label={`Eliminar ${extra.nombre}`}
                               >
                                 <Icono name="trash" className="h-4 w-4" />
@@ -2808,6 +2860,55 @@ export default function DashboardShell({ vista = "resumen" }) {
                   </button>
                 </div>
               </form>
+            </section>
+          </div>
+        )}
+
+        {detalleConfirmacionEliminacion && (
+          <div
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 px-4 py-8"
+            onClick={cerrarConfirmacionEliminacion}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirmacion-eliminacion-title"
+          >
+            <section
+              className="w-full max-w-md rounded-[1.4rem] border border-brand/10 bg-white p-6 shadow-[0_24px_80px_rgba(0,0,0,0.18)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-700/8 text-red-800">
+                  <Icono name="trash" className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Confirmar eliminacion</p>
+                  <h2 id="confirmacion-eliminacion-title" className="mt-2 font-display text-3xl leading-tight text-copy">
+                    {detalleConfirmacionEliminacion.titulo}
+                  </h2>
+                  <p className="mt-3 text-sm leading-6 text-muted">
+                    {detalleConfirmacionEliminacion.texto} Esta accion no se puede deshacer.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-brand/12 bg-surface px-5 py-3 text-sm font-bold text-copy transition hover:bg-brand/8"
+                  onClick={cerrarConfirmacionEliminacion}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-red-700/20 bg-red-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={confirmarEliminacion}
+                >
+                  <Icono name="trash" className="h-4 w-4" />
+                  Eliminar
+                </button>
+              </div>
             </section>
           </div>
         )}
